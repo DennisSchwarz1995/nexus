@@ -20,6 +20,87 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
   'Modular Desk',
 ];
 
+export interface CategoryConfig {
+  slug: string;
+  value: ProductCategory;
+  labelDe: string;
+  labelEn: string;
+  descriptionDe: string;
+  descriptionEn: string;
+}
+
+export const CATEGORY_MAP: Record<string, CategoryConfig> = {
+  audio: {
+    slug: 'audio',
+    value: 'Audio & Acoustics',
+    labelDe: 'Audio & Akustik',
+    labelEn: 'Audio & Acoustics',
+    descriptionDe:
+      'Magnetostatische Referenz-Kopfhörer, diskrete R2R-Wandler, Studiomonitore und akustische Entkopplung.',
+    descriptionEn:
+      'Reference planar-magnetic headphones, discrete R2R converters, studio monitors, and acoustic isolation.',
+  },
+  input: {
+    slug: 'input',
+    value: 'Precision Input',
+    labelDe: 'Präzisions-Eingabe',
+    labelEn: 'Precision Input',
+    descriptionDe:
+      'CNC-gefräste Hall-Effekt-Tastaturen, ultraleichte Magnesium-Mäuse und taktile Studio-Controller.',
+    descriptionEn:
+      'CNC-milled Hall-effect keyboards, ultra-lightweight magnesium mice, and tactile studio controllers.',
+  },
+  'desk-systems': {
+    slug: 'desk-systems',
+    value: 'Modular Desk',
+    labelDe: 'Modulare Tischsysteme',
+    labelEn: 'Modular Desk Systems',
+    descriptionDe:
+      'Massivholz-Schreibtische aus amerikanischem Schwarznussbaum und modulare Cockpit-Architektur.',
+    descriptionEn:
+      'Solid American black walnut sit-stand desks and modular cockpit workspace architecture.',
+  },
+  workstations: {
+    slug: 'workstations',
+    value: 'Workstations',
+    labelDe: 'Workstations & Docks',
+    labelEn: 'Workstations & Docks',
+    descriptionDe:
+      '120 Gbit/s Thunderbolt 5 Docking-Stationen, NVMe-RAID-Einschübe und Studio-Stromversorgung.',
+    descriptionEn:
+      '120 Gbps Thunderbolt 5 docking stations, NVMe RAID enclosures, and studio power conditioning.',
+  },
+  lighting: {
+    slug: 'lighting',
+    value: 'Architectural Lighting',
+    labelDe: 'Architektur-Licht',
+    labelEn: 'Architectural Lighting',
+    descriptionDe:
+      'Blendfreie CRI 99+ Vollspektrum-Arbeitsplatzleuchten mit automatischer Tageslicht-Adaptation.',
+    descriptionEn:
+      'Glare-free CRI 99+ full-spectrum task luminaires with circadian daylight adaptation.',
+  },
+};
+
+export function getCategoryBySlug(slug: string): CategoryConfig | undefined {
+  return CATEGORY_MAP[slug.toLowerCase()];
+}
+
+export function getCategoryByValue(value: string): CategoryConfig | undefined {
+  const normalized = value.trim().toLowerCase();
+  if (CATEGORY_MAP[normalized]) {
+    return CATEGORY_MAP[normalized];
+  }
+  return Object.values(CATEGORY_MAP).find(
+    (cfg) => cfg.value.toLowerCase() === normalized
+  );
+}
+
+export function getCategoryPath(category: ProductCategory): string {
+  const found = Object.values(CATEGORY_MAP).find((c) => c.value === category);
+  return found ? `/products/${found.slug}` : '/products';
+}
+
 const FLAGSHIP_PRODUCTS: Product[] = [
   {
     id: 'prod-001',

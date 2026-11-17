@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ShoppingBag,
   Trash2,
@@ -14,14 +14,13 @@ import {
   Loader2,
   CreditCard,
   Truck,
-  Sparkles,
   RotateCcw,
-} from 'lucide-react';
-import { useCartStore } from '@/lib/store';
-import { ALL_PRODUCTS } from '@/lib/commerce';
-import { useLocale, translateCategory } from '@/lib/i18n';
-import { cn, formatCurrency } from '@/lib/utils';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { useCartStore } from "@/lib/store";
+import { ALL_PRODUCTS } from "@/lib/commerce";
+import { useLocale, translateCategory } from "@/lib/i18n";
+import { cn, formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface OrderReceipt {
   orderNumber: string;
@@ -33,7 +32,7 @@ interface OrderReceipt {
 
 export default function CartAndCheckoutPage() {
   const { locale } = useLocale();
-  const isDe = locale === 'de';
+  const isDe = locale === "de";
 
   const {
     items,
@@ -48,13 +47,21 @@ export default function CartAndCheckoutPage() {
   } = useCartStore();
 
   const [mounted, setMounted] = useState(false);
-  const [promoInput, setPromoInput] = useState('');
-  const [shippingMethod, setShippingMethod] = useState<'express' | 'priority'>('express');
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'card' | 'sepa'>('stripe');
+  const [promoInput, setPromoInput] = useState("");
+  const [shippingMethod, setShippingMethod] = useState<"express" | "priority">(
+    "express",
+  );
+  const [paymentMethod, setPaymentMethod] = useState<
+    "stripe" | "card" | "sepa"
+  >("stripe");
 
-  const [customerName, setCustomerName] = useState('Dennis Schwarz');
-  const [customerEmail, setCustomerEmail] = useState('dennis@dennis-schwarz.dev');
-  const [shippingAddress, setShippingAddress] = useState('Maximilianstraße 35, 80539 München');
+  const [customerName, setCustomerName] = useState("Dennis Schwarz");
+  const [customerEmail, setCustomerEmail] = useState(
+    "dennis@dennis-schwarz.dev",
+  );
+  const [shippingAddress, setShippingAddress] = useState(
+    "Maximilianstraße 35, 80539 München",
+  );
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
@@ -70,11 +77,11 @@ export default function CartAndCheckoutPage() {
   const shippingCost =
     subtotal === 0
       ? 0
-      : shippingMethod === 'priority'
-      ? 29.0
-      : subtotal >= 250
-      ? 0
-      : 14.9;
+      : shippingMethod === "priority"
+        ? 29.0
+        : subtotal >= 250
+          ? 0
+          : 14.9;
   const finalTotal = Math.max(0, subtotal - discountAmount + shippingCost);
   const includedVat = finalTotal - finalTotal / 1.19;
 
@@ -83,12 +90,12 @@ export default function CartAndCheckoutPage() {
     if (!promoInput.trim()) return;
     const res = applyPromoCode(promoInput);
     if (res.valid) {
-      toast.success(isDe ? 'Rabattcode aktiviert' : 'Privilege code applied', {
+      toast.success(isDe ? "Rabattcode aktiviert" : "Privilege code applied", {
         description: res.message,
       });
-      setPromoInput('');
+      setPromoInput("");
     } else {
-      toast.error(isDe ? 'Ungültiger Code' : 'Invalid code', {
+      toast.error(isDe ? "Ungültiger Code" : "Invalid code", {
         description: res.message,
       });
     }
@@ -100,14 +107,14 @@ export default function CartAndCheckoutPage() {
 
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/webhooks/stripe', {
-        method: 'POST',
+      const response = await fetch("/api/webhooks/stripe", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'stripe-signature': `t=${Math.floor(Date.now() / 1000)},v1=nexus_verified_sig`,
+          "Content-Type": "application/json",
+          "stripe-signature": `t=${Math.floor(Date.now() / 1000)},v1=nexus_verified_sig`,
         },
         body: JSON.stringify({
-          type: 'checkout.session.completed',
+          type: "checkout.session.completed",
           amountTotal: finalTotal,
           customer: {
             name: customerName,
@@ -139,15 +146,15 @@ export default function CartAndCheckoutPage() {
           : `Order ${data.orderNumber} confirmed`,
         {
           description: isDe
-            ? 'Ihre Auftragsbestätigung wurde per E-Mail versendet.'
-            : 'Your order confirmation has been dispatched via email.',
-        }
+            ? "Ihre Auftragsbestätigung wurde per E-Mail versendet."
+            : "Your order confirmation has been dispatched via email.",
+        },
       );
     } catch {
       toast.error(
         isDe
-          ? 'Zahlungsautorisierung fehlgeschlagen'
-          : 'Payment authorization failed'
+          ? "Zahlungsautorisierung fehlgeschlagen"
+          : "Payment authorization failed",
       );
     } finally {
       setIsProcessing(false);
@@ -174,7 +181,7 @@ export default function CartAndCheckoutPage() {
           quantity: 1,
           maxStock: p1.stock,
         },
-        1
+        1,
       );
     }
     if (p2 && p2.variants[0]) {
@@ -194,14 +201,12 @@ export default function CartAndCheckoutPage() {
           quantity: 1,
           maxStock: p2.stock,
         },
-        1
+        1,
       );
     }
     setReceipt(null);
     toast.success(
-      isDe
-        ? 'Auswahl wiederhergestellt'
-        : 'Sample selection restored'
+      isDe ? "Auswahl wiederhergestellt" : "Sample selection restored",
     );
   };
 
@@ -215,19 +220,18 @@ export default function CartAndCheckoutPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="flex flex-col justify-between gap-4 border-b border-zinc-200/80 pb-8 sm:flex-row sm:items-end">
         <div>
           <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            {isDe ? 'NEXUS Atelier // Bestellung' : 'NEXUS Atelier // Order'}
+            {isDe ? "NEXUS Atelier // Bestellung" : "NEXUS Atelier // Order"}
           </span>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
-            {isDe ? 'Warenkorb & Kasse' : 'Shopping Bag & Checkout'}
+            {isDe ? "Warenkorb & Kasse" : "Shopping Bag & Checkout"}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
             {isDe
-              ? 'Versicherter Direktversand ab Manufaktur München · 30 Tage Rückgaberecht.'
-              : 'Insured direct courier delivery from our Munich manufactory · 30-day return policy.'}
+              ? "Versicherter Direktversand ab Manufaktur München · 30 Tage Rückgaberecht."
+              : "Insured direct courier delivery from our Munich manufactory · 30-day return policy."}
           </p>
         </div>
 
@@ -235,19 +239,20 @@ export default function CartAndCheckoutPage() {
           href="/products"
           className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-700 hover:text-zinc-950"
         >
-          <span>{isDe ? 'Weiter einkaufen' : 'Continue Shopping'}</span>
+          <span>{isDe ? "Weiter einkaufen" : "Continue Shopping"}</span>
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
-      {/* Order Confirmation View */}
       {receipt ? (
         <div className="mt-10 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-xl">
           <div className="border-b border-zinc-100 bg-zinc-950 p-8 text-white sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/30">
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>
-                {isDe ? 'Auftrag bestätigt & in Fertigungsprüfung' : 'Order Confirmed & Queued for Dispatch'}
+                {isDe
+                  ? "Auftrag bestätigt & in Fertigungsprüfung"
+                  : "Order Confirmed & Queued for Dispatch"}
               </span>
             </div>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -258,15 +263,27 @@ export default function CartAndCheckoutPage() {
             <p className="mt-2 text-sm text-zinc-400">
               {isDe ? (
                 <>
-                  Ihre Auftragsbestätigung für Bestellung{' '}
-                  <strong className="font-mono text-white">{receipt.orderNumber}</strong> wurde an{' '}
-                  <span className="text-zinc-200 underline">{receipt.customerEmail}</span> gesendet.
+                  Ihre Auftragsbestätigung für Bestellung{" "}
+                  <strong className="font-mono text-white">
+                    {receipt.orderNumber}
+                  </strong>{" "}
+                  wurde an{" "}
+                  <span className="text-zinc-200 underline">
+                    {receipt.customerEmail}
+                  </span>{" "}
+                  gesendet.
                 </>
               ) : (
                 <>
-                  Your confirmation for order{' '}
-                  <strong className="font-mono text-white">{receipt.orderNumber}</strong> has been sent to{' '}
-                  <span className="text-zinc-200 underline">{receipt.customerEmail}</span>.
+                  Your confirmation for order{" "}
+                  <strong className="font-mono text-white">
+                    {receipt.orderNumber}
+                  </strong>{" "}
+                  has been sent to{" "}
+                  <span className="text-zinc-200 underline">
+                    {receipt.customerEmail}
+                  </span>
+                  .
                 </>
               )}
             </p>
@@ -274,12 +291,12 @@ export default function CartAndCheckoutPage() {
 
           <div className="p-8 sm:p-10">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {isDe ? 'Auftragsübersicht' : 'Order Summary'}
+              {isDe ? "Auftragsübersicht" : "Order Summary"}
             </h3>
             <div className="mt-4 max-w-2xl divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-zinc-50/50 px-5">
               <div className="flex justify-between py-3.5 text-xs">
                 <span className="text-zinc-500">
-                  {isDe ? 'Bestellnummer' : 'Order Number'}
+                  {isDe ? "Bestellnummer" : "Order Number"}
                 </span>
                 <span className="font-mono font-semibold text-zinc-950">
                   {receipt.orderNumber}
@@ -287,13 +304,17 @@ export default function CartAndCheckoutPage() {
               </div>
               <div className="flex justify-between py-3.5 text-xs">
                 <span className="text-zinc-500">
-                  {isDe ? 'Transaktions-Referenz' : 'Transaction Reference'}
+                  {isDe ? "Transaktions-Referenz" : "Transaction Reference"}
                 </span>
-                <span className="font-mono text-zinc-800">{receipt.stripeSessionId}</span>
+                <span className="font-mono text-zinc-800">
+                  {receipt.stripeSessionId}
+                </span>
               </div>
               <div className="flex justify-between py-3.5 text-xs">
                 <span className="text-zinc-500">
-                  {isDe ? 'Gesamtbetrag (inkl. MwSt.)' : 'Total Amount (incl. VAT)'}
+                  {isDe
+                    ? "Gesamtbetrag (inkl. MwSt.)"
+                    : "Total Amount (incl. VAT)"}
                 </span>
                 <span className="font-mono font-semibold text-zinc-950">
                   {formatCurrency(receipt.amountTotal)}
@@ -301,9 +322,11 @@ export default function CartAndCheckoutPage() {
               </div>
               <div className="flex justify-between py-3.5 text-xs">
                 <span className="text-zinc-500">
-                  {isDe ? 'Lieferanschrift' : 'Delivery Address'}
+                  {isDe ? "Lieferanschrift" : "Delivery Address"}
                 </span>
-                <span className="font-medium text-zinc-800">{shippingAddress}</span>
+                <span className="font-medium text-zinc-800">
+                  {shippingAddress}
+                </span>
               </div>
             </div>
 
@@ -312,7 +335,9 @@ export default function CartAndCheckoutPage() {
                 href="/products"
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white hover:bg-zinc-800"
               >
-                <span>{isDe ? 'Zurück zur Kollektion' : 'Return to Collection'}</span>
+                <span>
+                  {isDe ? "Zurück zur Kollektion" : "Return to Collection"}
+                </span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
               <button
@@ -322,7 +347,9 @@ export default function CartAndCheckoutPage() {
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>
-                  {isDe ? 'Weitere Bestellung zusammenstellen' : 'Start Another Order'}
+                  {isDe
+                    ? "Weitere Bestellung zusammenstellen"
+                    : "Start Another Order"}
                 </span>
               </button>
             </div>
@@ -334,19 +361,23 @@ export default function CartAndCheckoutPage() {
             <ShoppingBag className="h-6 w-6" />
           </div>
           <h2 className="mt-4 text-lg font-semibold text-zinc-950">
-            {isDe ? 'Ihr Warenkorb ist aktuell leer' : 'Your shopping bag is currently empty'}
+            {isDe
+              ? "Ihr Warenkorb ist aktuell leer"
+              : "Your shopping bag is currently empty"}
           </h2>
           <p className="mt-1 max-w-md text-xs text-zinc-500">
             {isDe
-              ? 'Wählen Sie Modelle aus unserer Kollektion oder laden Sie unsere kuratierte Studio-Empfehlung.'
-              : 'Select instruments from our collection or load our curated studio recommendation.'}
+              ? "Wählen Sie Modelle aus unserer Kollektion oder laden Sie unsere kuratierte Studio-Empfehlung."
+              : "Select instruments from our collection or load our curated studio recommendation."}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
               href="/products"
               className="inline-flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white hover:bg-zinc-800"
             >
-              <span>{isDe ? 'Kollektion entdecken' : 'Explore Collection'}</span>
+              <span>
+                {isDe ? "Kollektion entdecken" : "Explore Collection"}
+              </span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <button
@@ -354,16 +385,16 @@ export default function CartAndCheckoutPage() {
               onClick={handleRestoreSampleCart}
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-5 text-xs font-semibold text-zinc-900 hover:bg-zinc-50"
             >
-              <Sparkles className="h-3.5 w-3.5" />
               <span>
-                {isDe ? 'Studio-Empfehlung in den Warenkorb legen' : 'Load Studio Recommendation'}
+                {isDe
+                  ? "Studio-Empfehlung in den Warenkorb legen"
+                  : "Load Studio Recommendation"}
               </span>
             </button>
           </div>
         </div>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12">
-          {/* Left Column: Cart Items & Shipping Selection */}
           <div className="space-y-8 lg:col-span-7">
             <div className="rounded-2xl border border-zinc-200/90 bg-white">
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
@@ -377,18 +408,21 @@ export default function CartAndCheckoutPage() {
                   onClick={() => {
                     clearCart();
                     toast.info(
-                      isDe ? 'Warenkorb wurde geleert' : 'Shopping bag cleared'
+                      isDe ? "Warenkorb wurde geleert" : "Shopping bag cleared",
                     );
                   }}
                   className="text-xs font-medium text-zinc-400 hover:text-red-600"
                 >
-                  {isDe ? 'Alle entfernen' : 'Clear all'}
+                  {isDe ? "Alle entfernen" : "Clear all"}
                 </button>
               </div>
 
               <ul className="divide-y divide-zinc-100 px-6">
                 {items.map((item) => (
-                  <li key={item.id} className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center">
+                  <li
+                    key={item.id}
+                    className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center"
+                  >
                     <img
                       src={item.image}
                       alt={item.name}
@@ -417,7 +451,7 @@ export default function CartAndCheckoutPage() {
                             style={{ backgroundColor: item.variantHex }}
                           />
                           <span>
-                            {isDe ? 'Ausführung' : 'Finish'}: {item.variantName}
+                            {isDe ? "Ausführung" : "Finish"}: {item.variantName}
                           </span>
                         </div>
                       </div>
@@ -426,8 +460,12 @@ export default function CartAndCheckoutPage() {
                         <div className="inline-flex items-center rounded-xl border border-zinc-200 bg-zinc-50/70">
                           <button
                             type="button"
-                            aria-label={isDe ? 'Menge reduzieren' : 'Decrease quantity'}
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            aria-label={
+                              isDe ? "Menge reduzieren" : "Decrease quantity"
+                            }
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity - 1)
+                            }
                             className="px-2.5 py-1.5 text-zinc-600 hover:text-zinc-950"
                           >
                             <Minus className="h-3.5 w-3.5" />
@@ -437,8 +475,12 @@ export default function CartAndCheckoutPage() {
                           </span>
                           <button
                             type="button"
-                            aria-label={isDe ? 'Menge erhöhen' : 'Increase quantity'}
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            aria-label={
+                              isDe ? "Menge erhöhen" : "Increase quantity"
+                            }
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity + 1)
+                            }
                             className="px-2.5 py-1.5 text-zinc-600 hover:text-zinc-950"
                           >
                             <Plus className="h-3.5 w-3.5" />
@@ -450,14 +492,19 @@ export default function CartAndCheckoutPage() {
                             {formatCurrency(item.price * item.quantity)}
                           </p>
                           <p className="font-mono text-[11px] text-zinc-400">
-                            {formatCurrency(item.price)} / {isDe ? 'Stk.' : 'ea.'}
+                            {formatCurrency(item.price)} /{" "}
+                            {isDe ? "Stk." : "ea."}
                           </p>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}
-                          aria-label={isDe ? `${item.name} löschen` : `Remove ${item.name}`}
+                          aria-label={
+                            isDe
+                              ? `${item.name} löschen`
+                              : `Remove ${item.name}`
+                          }
                           className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -469,22 +516,23 @@ export default function CartAndCheckoutPage() {
               </ul>
             </div>
 
-            {/* Shipping Method Selection */}
             <div className="rounded-2xl border border-zinc-200/90 bg-white p-6">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 <Truck className="h-4 w-4 text-zinc-900" />
-                <span>{isDe ? 'Logistik & Versandart' : 'Delivery & Logistics'}</span>
+                <span>
+                  {isDe ? "Logistik & Versandart" : "Delivery & Logistics"}
+                </span>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => setShippingMethod('express')}
+                  onClick={() => setShippingMethod("express")}
                   className={cn(
-                    'flex flex-col justify-between rounded-xl border p-4 text-left transition-all',
-                    shippingMethod === 'express'
-                      ? 'border-zinc-950 bg-zinc-50/70 ring-1 ring-zinc-950'
-                      : 'border-zinc-200 hover:border-zinc-300'
+                    "flex flex-col justify-between rounded-xl border p-4 text-left transition-all",
+                    shippingMethod === "express"
+                      ? "border-zinc-950 bg-zinc-50/70 ring-1 ring-zinc-950"
+                      : "border-zinc-200 hover:border-zinc-300",
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -494,26 +542,26 @@ export default function CartAndCheckoutPage() {
                     <span className="font-mono text-xs font-semibold text-emerald-700">
                       {subtotal >= 250
                         ? isDe
-                          ? 'Kostenfrei'
-                          : 'Complimentary'
+                          ? "Kostenfrei"
+                          : "Complimentary"
                         : formatCurrency(14.9)}
                     </span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-zinc-500">
                     {isDe
-                      ? 'Versicherter Direktversand bis 25.000 € mit persönlicher Übergabe.'
-                      : 'Insured direct courier delivery up to €25,000 with signature confirmation.'}
+                      ? "Versicherter Direktversand bis 25.000 € mit persönlicher Übergabe."
+                      : "Insured direct courier delivery up to €25,000 with signature confirmation."}
                   </p>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setShippingMethod('priority')}
+                  onClick={() => setShippingMethod("priority")}
                   className={cn(
-                    'flex flex-col justify-between rounded-xl border p-4 text-left transition-all',
-                    shippingMethod === 'priority'
-                      ? 'border-zinc-950 bg-zinc-50/70 ring-1 ring-zinc-950'
-                      : 'border-zinc-200 hover:border-zinc-300'
+                    "flex flex-col justify-between rounded-xl border p-4 text-left transition-all",
+                    shippingMethod === "priority"
+                      ? "border-zinc-950 bg-zinc-50/70 ring-1 ring-zinc-950"
+                      : "border-zinc-200 hover:border-zinc-300",
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -526,27 +574,28 @@ export default function CartAndCheckoutPage() {
                   </div>
                   <p className="mt-1.5 text-[11px] text-zinc-500">
                     {isDe
-                      ? 'Terminierte Zustellung im 2-Stunden-Zeitfenster inkl. Verpackungsrücknahme.'
-                      : 'Scheduled delivery within a 2-hour window including packaging removal.'}
+                      ? "Terminierte Zustellung im 2-Stunden-Zeitfenster inkl. Verpackungsrücknahme."
+                      : "Scheduled delivery within a 2-hour window including packaging removal."}
                   </p>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Order Summary, Promo Code & Checkout Form */}
           <div className="space-y-6 lg:col-span-5">
             <div className="rounded-2xl border border-zinc-200/90 bg-zinc-50/60 p-6">
               <h2 className="text-sm font-semibold text-zinc-950">
-                {isDe ? 'Bestellübersicht & Konditionen' : 'Order Summary & Conditions'}
+                {isDe
+                  ? "Bestellübersicht & Konditionen"
+                  : "Order Summary & Conditions"}
               </h2>
 
               {/* Promo Code Form */}
               <form onSubmit={handlePromoSubmit} className="mt-4">
                 <label className="block text-[11px] font-medium text-zinc-500">
                   {isDe
-                    ? 'Gutscheincode / Partner-Kennung'
-                    : 'Privilege Code / Partner ID'}
+                    ? "Gutscheincode / Partner-Kennung"
+                    : "Privilege Code / Partner ID"}
                 </label>
                 <div className="mt-1.5 flex gap-2">
                   <div className="relative flex-1">
@@ -563,15 +612,15 @@ export default function CartAndCheckoutPage() {
                     type="submit"
                     className="rounded-xl border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-900 hover:bg-zinc-100"
                   >
-                    {isDe ? 'Einlösen' : 'Apply'}
+                    {isDe ? "Einlösen" : "Apply"}
                   </button>
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <span className="text-[10px] text-zinc-400">
-                    {isDe ? 'Verfügbar:' : 'Available:'}
+                    {isDe ? "Verfügbar:" : "Available:"}
                   </span>
-                  {['NEXUS10', 'ARCHITECT15', 'VIP20'].map((code) => (
+                  {["NEXUS10", "ARCHITECT15", "VIP20"].map((code) => (
                     <button
                       key={code}
                       type="button"
@@ -580,10 +629,10 @@ export default function CartAndCheckoutPage() {
                         toast.success(res.message);
                       }}
                       className={cn(
-                        'rounded-md border px-2 py-0.5 font-mono text-[10px] transition-colors',
+                        "rounded-md border px-2 py-0.5 font-mono text-[10px] transition-colors",
                         promoCode === code
-                          ? 'border-zinc-950 bg-zinc-950 text-white'
-                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                          ? "border-zinc-950 bg-zinc-950 text-white"
+                          : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300",
                       )}
                     >
                       {code}
@@ -595,16 +644,15 @@ export default function CartAndCheckoutPage() {
                       onClick={removePromoCode}
                       className="ml-auto text-[10px] text-zinc-400 underline hover:text-zinc-700"
                     >
-                      {isDe ? 'Entfernen' : 'Remove'}
+                      {isDe ? "Entfernen" : "Remove"}
                     </button>
                   )}
                 </div>
               </form>
 
-              {/* Price Breakdown */}
               <div className="mt-6 space-y-2.5 border-t border-zinc-200/80 pt-4 text-xs">
                 <div className="flex justify-between text-zinc-600">
-                  <span>{isDe ? 'Zwischensumme' : 'Subtotal'}</span>
+                  <span>{isDe ? "Zwischensumme" : "Subtotal"}</span>
                   <span className="font-mono font-medium text-zinc-900">
                     {formatCurrency(subtotal)}
                   </span>
@@ -612,7 +660,7 @@ export default function CartAndCheckoutPage() {
                 {discountPercent > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span>
-                      {isDe ? 'Nachlass' : 'Privilege Discount'} ({promoCode} ·{' '}
+                      {isDe ? "Nachlass" : "Privilege Discount"} ({promoCode} ·{" "}
                       {discountPercent}%)
                     </span>
                     <span className="font-mono font-semibold">
@@ -621,44 +669,49 @@ export default function CartAndCheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between text-zinc-600">
-                  <span>{isDe ? 'Versandkosten' : 'Shipping'}</span>
+                  <span>{isDe ? "Versandkosten" : "Shipping"}</span>
                   <span className="font-mono font-medium text-zinc-900">
                     {shippingCost === 0
                       ? isDe
-                        ? 'Kostenfrei'
-                        : 'Complimentary'
+                        ? "Kostenfrei"
+                        : "Complimentary"
                       : formatCurrency(shippingCost)}
                   </span>
                 </div>
                 <div className="flex justify-between text-[11px] text-zinc-400">
                   <span>
                     {isDe
-                      ? 'Enthaltene gesetzl. MwSt. (19 %)'
-                      : 'Included VAT (19%)'}
+                      ? "Enthaltene gesetzl. MwSt. (19 %)"
+                      : "Included VAT (19%)"}
                   </span>
-                  <span className="font-mono">{formatCurrency(includedVat)}</span>
+                  <span className="font-mono">
+                    {formatCurrency(includedVat)}
+                  </span>
                 </div>
                 <div className="flex justify-between border-t border-zinc-200/80 pt-3 text-base font-semibold text-zinc-950">
-                  <span>{isDe ? 'Gesamtsumme' : 'Total'}</span>
-                  <span className="font-mono">{formatCurrency(finalTotal)}</span>
+                  <span>{isDe ? "Gesamtsumme" : "Total"}</span>
+                  <span className="font-mono">
+                    {formatCurrency(finalTotal)}
+                  </span>
                 </div>
               </div>
 
-              {/* Customer & Payment Form */}
               <form
                 onSubmit={handleSimulateCheckout}
                 className="mt-6 space-y-4 border-t border-zinc-200/80 pt-6"
               >
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   {isDe
-                    ? 'Lieferanschrift & Zahlungsart'
-                    : 'Delivery Address & Payment Method'}
+                    ? "Lieferanschrift & Zahlungsart"
+                    : "Delivery Address & Payment Method"}
                 </h3>
 
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-600">
-                      {isDe ? 'Vollständiger Name / Studio' : 'Full Name / Studio'}
+                      {isDe
+                        ? "Vollständiger Name / Studio"
+                        : "Full Name / Studio"}
                     </label>
                     <input
                       type="text"
@@ -671,8 +724,8 @@ export default function CartAndCheckoutPage() {
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-600">
                       {isDe
-                        ? 'E-Mail für Rechnung & Sendungsverfolgung'
-                        : 'Email for Invoice & Tracking'}
+                        ? "E-Mail für Rechnung & Sendungsverfolgung"
+                        : "Email for Invoice & Tracking"}
                     </label>
                     <input
                       type="email"
@@ -684,7 +737,7 @@ export default function CartAndCheckoutPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-600">
-                      {isDe ? 'Lieferanschrift' : 'Shipping Address'}
+                      {isDe ? "Lieferanschrift" : "Shipping Address"}
                     </label>
                     <input
                       type="text"
@@ -696,22 +749,23 @@ export default function CartAndCheckoutPage() {
                   </div>
                 </div>
 
-                {/* Payment Method Pills */}
                 <div className="grid grid-cols-3 gap-2 pt-1">
                   {[
-                    { id: 'stripe', label: 'Apple Pay' },
-                    { id: 'card', label: isDe ? 'Kreditkarte' : 'Credit Card' },
-                    { id: 'sepa', label: 'SEPA-Instant' },
+                    { id: "stripe", label: "Apple Pay" },
+                    { id: "card", label: isDe ? "Kreditkarte" : "Credit Card" },
+                    { id: "sepa", label: "SEPA-Instant" },
                   ].map((pm) => (
                     <button
                       key={pm.id}
                       type="button"
-                      onClick={() => setPaymentMethod(pm.id as 'stripe' | 'card' | 'sepa')}
+                      onClick={() =>
+                        setPaymentMethod(pm.id as "stripe" | "card" | "sepa")
+                      }
                       className={cn(
-                        'flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-medium transition-all',
+                        "flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-medium transition-all",
                         paymentMethod === pm.id
-                          ? 'border-zinc-950 bg-zinc-950 text-white'
-                          : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300'
+                          ? "border-zinc-950 bg-zinc-950 text-white"
+                          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300",
                       )}
                     >
                       <CreditCard className="h-3 w-3" />
@@ -730,8 +784,8 @@ export default function CartAndCheckoutPage() {
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span>
                         {isDe
-                          ? 'Autorisiere Zahlung...'
-                          : 'Authorizing payment...'}
+                          ? "Autorisiere Zahlung..."
+                          : "Authorizing payment..."}
                       </span>
                     </>
                   ) : (
@@ -750,8 +804,8 @@ export default function CartAndCheckoutPage() {
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                   <span>
                     {isDe
-                      ? '256-Bit TLS-Verschlüsselung · Käuferschutz & 5 Jahre Garantie'
-                      : '256-Bit TLS Encryption · Buyer Protection & 5-Year Warranty'}
+                      ? "256-Bit TLS-Verschlüsselung · Käuferschutz & 5 Jahre Garantie"
+                      : "256-Bit TLS Encryption · Buyer Protection & 5-Year Warranty"}
                   </span>
                 </div>
               </form>

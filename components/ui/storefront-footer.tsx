@@ -92,7 +92,7 @@ export function StorefrontFooter() {
             <ul className="mt-3 space-y-2 text-xs">
               <li>
                 <Link
-                  href="/products?category=Audio+%26+Acoustics"
+                  href="/products/audio"
                   className="hover:text-zinc-950"
                 >
                   {isDe ? 'Audio & Akustik' : 'Audio & Acoustics'}
@@ -100,7 +100,7 @@ export function StorefrontFooter() {
               </li>
               <li>
                 <Link
-                  href="/products?category=Precision+Input"
+                  href="/products/input"
                   className="hover:text-zinc-950"
                 >
                   {isDe ? 'Präzisions-Eingabe' : 'Precision Input'}
@@ -108,7 +108,7 @@ export function StorefrontFooter() {
               </li>
               <li>
                 <Link
-                  href="/products?category=Workstations"
+                  href="/products/workstations"
                   className="hover:text-zinc-950"
                 >
                   {isDe ? 'Workstations & Docks' : 'Thunderbolt 5 Workstations'}
@@ -116,7 +116,7 @@ export function StorefrontFooter() {
               </li>
               <li>
                 <Link
-                  href="/products?category=Architectural+Lighting"
+                  href="/products/lighting"
                   className="hover:text-zinc-950"
                 >
                   {isDe ? 'Architektur-Licht' : 'Architectural Lighting'}
@@ -124,7 +124,7 @@ export function StorefrontFooter() {
               </li>
               <li>
                 <Link
-                  href="/products?category=Modular+Desk"
+                  href="/products/desk-systems"
                   className="hover:text-zinc-950"
                 >
                   {isDe ? 'Modulare Tischsysteme' : 'Modular Desk Systems'}

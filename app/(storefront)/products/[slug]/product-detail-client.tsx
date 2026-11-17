@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { Product } from '@/types';
+import { getCategoryPath } from '@/lib/commerce';
 import { useLocale, localizeProduct, translateCategory } from '@/lib/i18n';
 import { AddToCart } from './add-to-cart';
 import {
@@ -49,13 +50,13 @@ export function ProductDetailClient({
           <ChevronRight className="h-3.5 w-3.5 text-zinc-300" />
           <li>
             <Link href="/products" className="hover:text-zinc-950">
-              {isDe ? 'Kollektion' : 'Collection'}
+              Collection
             </Link>
           </li>
           <ChevronRight className="h-3.5 w-3.5 text-zinc-300" />
           <li>
             <Link
-              href={`/products?category=${encodeURIComponent(product.category)}`}
+              href={getCategoryPath(product.category)}
               className="hover:text-zinc-950"
             >
               {translateCategory(product.category, locale)}
