@@ -1,0 +1,29 @@
+services:
+  nexus:
+    image: ghcr.io/dennisschwarz1995/nexus:latest
+    container_name: nexus-ecommerce
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    networks:
+      - traefik-proxy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-proxy"
+      # Routing via Subdomains (Storefront & Admin-Dashboard)
+      - "traefik.http.routers.nexus.rule=Host(`shop.dennis-schwarz.dev`) || Host(`dashboard.dennis-schwarz.dev`)"
+      - "traefik.http.routers.nexus.entrypoints=websecure"
+      - "traefik.http.routers.nexus.tls=true"
+      - "traefik.http.routers.nexus.tls.certresolver=letsencrypt"
+      - "traefik.http.services.nexus.loadbalancer.server.port=3000"
+
+networks:
+  traefik-proxy:
+    external: true
