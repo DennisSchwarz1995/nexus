@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+export const SHOP_URL = 'https://shop.dennis-schwarz.dev';
+export const DASHBOARD_URL = 'https://dashboard.dennis-schwarz.dev';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
