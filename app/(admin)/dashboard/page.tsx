@@ -166,7 +166,7 @@ export default function AdminDashboardOverviewPage() {
               </p>
             </div>
             <Link
-              href="/dashboard/analytics"
+              href="/analytics"
               className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-900 hover:underline"
             >
               <span>Heatmaps</span>
@@ -266,7 +266,7 @@ export default function AdminDashboardOverviewPage() {
         {/* Right Quick Action Cards */}
         <div className="space-y-4 lg:col-span-4">
           <Link
-            href="/dashboard/inventory"
+            href="/inventory"
             className="group flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-zinc-950 p-6 text-white shadow-lg transition-all hover:bg-zinc-900"
           >
             <div>
@@ -289,7 +289,7 @@ export default function AdminDashboardOverviewPage() {
           </Link>
 
           <Link
-            href="/dashboard/analytics"
+            href="/analytics"
             className="group flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs transition-all hover:border-zinc-300"
           >
             <div>

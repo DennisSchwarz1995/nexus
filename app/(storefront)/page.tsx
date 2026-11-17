@@ -18,7 +18,7 @@ import {
   getFeaturedProducts,
   PRODUCT_CATEGORIES,
 } from '@/lib/commerce';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, DASHBOARD_URL } from '@/lib/utils';
 import { ProductCard } from '@/components/ui/product-card';
 
 // Incremental Static Regeneration (ISR) every 60 minutes for sub-second TTFB & LCP < 1.2s
@@ -82,13 +82,13 @@ export default async function StorefrontLandingPage() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                <Link
-                  href="/dashboard"
+                <a
+                  href={`${DASHBOARD_URL}/overview`}
                   className="inline-flex h-12 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-5 text-sm font-medium text-zinc-900 shadow-xs transition-all hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
                 >
                   <LayoutDashboard className="h-4 w-4 text-zinc-600" />
                   <span>Admin-Dashboard öffnen</span>
-                </Link>
+                </a>
               </div>
 
               {/* Core Web Vitals & Architecture Strip */}
@@ -332,25 +332,25 @@ export default async function StorefrontLandingPage() {
               </div>
 
               <div className="mt-8 flex flex-wrap items-center gap-3 pt-4">
-                <Link
-                  href="/dashboard"
+                <a
+                  href={`${DASHBOARD_URL}/overview`}
                   className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200"
                 >
                   <span>Zum Admin-Dashboard</span>
                   <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link
-                  href="/dashboard/inventory"
+                </a>
+                <a
+                  href={`${DASHBOARD_URL}/inventory`}
                   className="inline-flex h-11 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
                 >
                   <span>TanStack Inventar-Tabelle testen</span>
-                </Link>
-                <Link
-                  href="/dashboard/analytics"
+                </a>
+                <a
+                  href={`${DASHBOARD_URL}/analytics`}
                   className="inline-flex h-11 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
                 >
                   <span>Traffic-Heatmaps ansehen</span>
-                </Link>
+                </a>
               </div>
             </div>
 
