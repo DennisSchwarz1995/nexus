@@ -36,6 +36,7 @@ import {
 import { Product, ProductCategory, ProductStatus } from '@/types';
 import { PRODUCT_CATEGORIES, queryInventory } from '@/lib/commerce';
 import { useInventoryStore } from '@/lib/store';
+import { useLocale } from '@/lib/i18n';
 import { cn, formatCurrency, formatNumber, SHOP_URL } from '@/lib/utils';
 import {
   Select,
@@ -88,6 +89,9 @@ const STATUS_CONFIG: Record<
 };
 
 export function InventoryTable() {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+
   const {
     products,
     updateProductStock,
@@ -583,34 +587,50 @@ export function InventoryTable() {
       {/* Top Inventory KPI Strip */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-zinc-200/80 bg-white p-5">
-          <p className="text-xs font-medium text-zinc-500">Gesamter Lagerbestandswert</p>
+          <p className="text-xs font-medium text-zinc-500">
+            {isDe ? 'Gesamter Lagerbestandswert' : 'Total Inventory Value'}
+          </p>
           <p className="mt-2 font-mono text-2xl font-semibold text-zinc-950">
             {formatCurrency(queryResult.summary.totalCatalogValue)}
           </p>
           <p className="mt-1 text-[11px] text-zinc-400">
-            Über {products.length} verwaltete SKUs
+            {isDe
+              ? `Über ${products.length} verwaltete SKUs`
+              : `Across ${products.length} managed SKUs`}
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-200/80 bg-white p-5">
-          <p className="text-xs font-medium text-zinc-500">Aktive Storefront-SKUs</p>
+          <p className="text-xs font-medium text-zinc-500">
+            {isDe ? 'Aktive Storefront-SKUs' : 'Active Storefront SKUs'}
+          </p>
           <p className="mt-2 font-mono text-2xl font-semibold text-emerald-700">
             {formatNumber(queryResult.summary.activeCount)}
           </p>
-          <p className="mt-1 text-[11px] text-zinc-400">Sofort versandfertig (24h)</p>
+          <p className="mt-1 text-[11px] text-zinc-400">
+            {isDe ? 'Sofort versandfertig (24h)' : 'Ready for 24h Express Dispatch'}
+          </p>
         </div>
         <div className="rounded-2xl border border-zinc-200/80 bg-white p-5">
-          <p className="text-xs font-medium text-zinc-500">Niedriger Bestand (&lt; 10 Stk.)</p>
+          <p className="text-xs font-medium text-zinc-500">
+            {isDe ? 'Niedriger Bestand (< 10 Stk.)' : 'Low Stock (< 10 units)'}
+          </p>
           <p className="mt-2 font-mono text-2xl font-semibold text-amber-600">
             {formatNumber(queryResult.summary.lowStockCount)}
           </p>
-          <p className="mt-1 text-[11px] text-zinc-400">Nachbestellung empfohlen</p>
+          <p className="mt-1 text-[11px] text-zinc-400">
+            {isDe ? 'Nachbestellung empfohlen' : 'Restock recommended'}
+          </p>
         </div>
         <div className="rounded-2xl border border-zinc-200/80 bg-white p-5">
-          <p className="text-xs font-medium text-zinc-500">Ausverkauft (Nachproduktion)</p>
+          <p className="text-xs font-medium text-zinc-500">
+            {isDe ? 'Ausverkauft (Nachproduktion)' : 'Out of Stock (Restocking)'}
+          </p>
           <p className="mt-2 font-mono text-2xl font-semibold text-red-600">
             {formatNumber(queryResult.summary.outOfStockCount)}
           </p>
-          <p className="mt-1 text-[11px] text-zinc-400">Automatische Warteliste aktiv</p>
+          <p className="mt-1 text-[11px] text-zinc-400">
+            {isDe ? 'Automatische Warteliste aktiv' : 'Automated waitlist active'}
+          </p>
         </div>
       </div>
 

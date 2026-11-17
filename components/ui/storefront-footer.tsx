@@ -1,24 +1,32 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Shield, Cpu, Layers } from 'lucide-react';
+import { ArrowUpRight, Shield, Layers, Compass } from 'lucide-react';
+import { useLocale } from '@/lib/i18n';
 import { DASHBOARD_URL } from '@/lib/utils';
 
 export function StorefrontFooter() {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+
   return (
     <footer className="border-t border-zinc-200/80 bg-zinc-50/60 text-zinc-600">
-      {/* Architectural Performance Banner */}
+      {/* Authentic Brand Value Pillars */}
       <div className="border-b border-zinc-200/70 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-zinc-200/70 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div className="flex items-start gap-4 p-6 lg:p-8">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-900">
-              <Cpu className="h-4 w-4" />
+              <Compass className="h-4 w-4" />
             </div>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-                Performance-First RSC
+                {isDe ? '5-Achsen CNC-Fertigung' : '5-Axis CNC Engineering'}
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                Zero-Client-Overhead Server Components mit Incremental Static Regeneration (LCP &lt; 0,8s).
+                {isDe
+                  ? 'Jedes Gehäuse wird aus dem Vollen gefräst, glasperlgestrahlt und nach Industriestandard harteloxiert.'
+                  : 'Every chassis is milled from solid billet, bead-blasted, and Type-III hard-anodized.'}
               </p>
             </div>
           </div>
@@ -28,10 +36,12 @@ export function StorefrontFooter() {
             </div>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-                Präzisions-Manufaktur
+                {isDe ? 'Authentische Werkstoffe' : 'Authentic Materials'}
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                CNC-gefrästes Grade-5-Titan, 6063-T6 Flugzeugaluminium und FSC-zertifiziertes Massivholz.
+                {isDe
+                  ? 'Grade-5-Titan, 6063-T6 Flugzeugaluminium, PVD-Messing und FSC-zertifizierter Schwarznussbaum.'
+                  : 'Grade-5 titanium, 6063-T6 aerospace aluminum, PVD brass, and FSC-certified black walnut.'}
               </p>
             </div>
           </div>
@@ -41,10 +51,12 @@ export function StorefrontFooter() {
             </div>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-                5 Jahre Werksgarantie
+                {isDe ? '5 Jahre Werksgarantie' : '5-Year Manufacture Warranty'}
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                Modulare Ersatzteilversorgung, 30 Tage Probehören im eigenen Studio & Express-Austausch.
+                {isDe
+                  ? 'Langfristige modulare Ersatzteilversorgung, 30 Tage Probehören im eigenen Studio & Express-Service.'
+                  : 'Long-term modular spare parts availability, 30-day studio trial, and priority express service.'}
               </p>
             </div>
           </div>
@@ -62,41 +74,60 @@ export function StorefrontFooter() {
               <span>NEXUS ATELIER</span>
             </div>
             <p className="text-xs leading-relaxed text-zinc-500">
-              High-Performance E-Commerce Storefront & Admin-Telemetry-Architektur. Entwickelt mit Next.js App Router, Radix UI, TanStack Table v8 & Recharts.
+              {isDe
+                ? 'Präzisionsgefertigte Audio-, Licht- und Arbeitsplatz-Systeme für Tonstudios, Architekten und anspruchsvolle Arbeitsumgebungen. Entwickelt in München.'
+                : 'Precision-crafted audio, lighting, and workspace systems for mastering studios, architects, and discerning professionals. Engineered in Munich.'}
             </p>
             <div className="pt-1 font-mono text-[11px] text-zinc-400">
-              shop.dennis-schwarz.dev · Traefik v3 Ready
+              {isDe
+                ? 'München · Zürich · Stockholm'
+                : 'Munich · Zurich · Stockholm'}
             </div>
           </div>
 
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-              Kollektionen
+              {isDe ? 'Kollektionen' : 'Collections'}
             </h4>
             <ul className="mt-3 space-y-2 text-xs">
               <li>
-                <Link href="/products?category=Audio+%26+Acoustics" className="hover:text-zinc-950">
-                  Audio & Acoustics
+                <Link
+                  href="/products?category=Audio+%26+Acoustics"
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Audio & Akustik' : 'Audio & Acoustics'}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=Precision+Input" className="hover:text-zinc-950">
-                  Precision Input
+                <Link
+                  href="/products?category=Precision+Input"
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Präzisions-Eingabe' : 'Precision Input'}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=Workstations" className="hover:text-zinc-950">
-                  Thunderbolt 5 Workstations
+                <Link
+                  href="/products?category=Workstations"
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Workstations & Docks' : 'Thunderbolt 5 Workstations'}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=Architectural+Lighting" className="hover:text-zinc-950">
-                  Architectural Lighting
+                <Link
+                  href="/products?category=Architectural+Lighting"
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Architektur-Licht' : 'Architectural Lighting'}
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=Modular+Desk" className="hover:text-zinc-950">
-                  Modular Desk Systems
+                <Link
+                  href="/products?category=Modular+Desk"
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Modulare Tischsysteme' : 'Modular Desk Systems'}
                 </Link>
               </li>
             </ul>
@@ -104,27 +135,33 @@ export function StorefrontFooter() {
 
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-              Architektur & Navigation
+              {isDe ? 'Kundenservice & Shop' : 'Client Services'}
             </h4>
             <ul className="mt-3 space-y-2 text-xs">
               <li>
-                <Link href="/" className="hover:text-zinc-950">
-                  Landing Page (ISR / RSC)
-                </Link>
-              </li>
-              <li>
                 <Link href="/products" className="hover:text-zinc-950">
-                  Katalog & Infinite Scroll
+                  {isDe ? 'Gesamtkatalog (144 Modelle)' : 'Full Catalog (144 Models)'}
                 </Link>
               </li>
               <li>
-                <Link href="/products/aether-one-planar-headphones" className="hover:text-zinc-950">
-                  Referenz-Produktdetailseite (SSG)
+                <Link
+                  href="/products/aether-one-planar-headphones"
+                  className="hover:text-zinc-950"
+                >
+                  Aether One Planar Studio
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/products/atelier-desk-system-walnut"
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Atelier Modul-Schreibtisch' : 'Atelier Modular Desk'}
                 </Link>
               </li>
               <li>
                 <Link href="/cart" className="hover:text-zinc-950">
-                  Warenkorb & Checkout-Simulation
+                  {isDe ? 'Warenkorb & Versand' : 'Shopping Bag & Shipping'}
                 </Link>
               </li>
             </ul>
@@ -132,15 +169,28 @@ export function StorefrontFooter() {
 
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-900">
-              Betreiber-Konsole (Admin)
+              {isDe ? 'Plattform & System' : 'Platform & System'}
             </h4>
             <ul className="mt-3 space-y-2 text-xs">
               <li>
-                <a
-                  href={`${DASHBOARD_URL}/overview`}
+                <Link
+                  href="/architecture"
                   className="inline-flex items-center gap-1 font-medium text-zinc-900 hover:underline"
                 >
-                  Executive KPI Dashboard <ArrowUpRight className="h-3 w-3" />
+                  <span>
+                    {isDe
+                      ? 'Systemarchitektur & Tech-Stack'
+                      : 'Architecture & Tech Stack'}
+                  </span>
+                  <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              </li>
+              <li>
+                <a
+                  href={`${DASHBOARD_URL}/overview`}
+                  className="hover:text-zinc-950"
+                >
+                  {isDe ? 'Admin-Dashboard (KPIs)' : 'Admin Dashboard (KPIs)'}
                 </a>
               </li>
               <li>
@@ -148,7 +198,7 @@ export function StorefrontFooter() {
                   href={`${DASHBOARD_URL}/analytics`}
                   className="hover:text-zinc-950"
                 >
-                  Traffic-Heatmaps & Recharts
+                  {isDe ? 'Traffic-Heatmaps & Analytics' : 'Traffic Heatmaps & Analytics'}
                 </a>
               </li>
               <li>
@@ -156,7 +206,7 @@ export function StorefrontFooter() {
                   href={`${DASHBOARD_URL}/inventory`}
                   className="hover:text-zinc-950"
                 >
-                  Inventar (TanStack Table v8)
+                  {isDe ? 'Inventarverwaltung' : 'Inventory Management'}
                 </a>
               </li>
             </ul>
@@ -164,13 +214,16 @@ export function StorefrontFooter() {
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-zinc-200/70 pt-6 text-[11px] text-zinc-400 sm:flex-row">
-          <p>© {new Date().getFullYear()} NEXUS Industrial Design GmbH. Alle Rechte vorbehalten.</p>
+          <p>
+            © {new Date().getFullYear()} NEXUS Industrial Design GmbH.{' '}
+            {isDe ? 'Alle Rechte vorbehalten.' : 'All rights reserved.'}
+          </p>
           <div className="flex items-center gap-4">
-            <span>LCP: 0.78s</span>
+            <Link href="/architecture" className="hover:text-zinc-700">
+              {isDe ? 'Core Web Vitals & Architektur' : 'Core Web Vitals & Architecture'}
+            </Link>
             <span>·</span>
-            <span>CLS: 0.00</span>
-            <span>·</span>
-            <span>Docker nginx:1.27-alpine</span>
+            <span>{isDe ? 'Impressum & Datenschutz' : 'Legal & Privacy'}</span>
           </div>
         </div>
       </div>

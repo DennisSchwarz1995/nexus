@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { HourlyHeatmapCell } from '@/types';
+import { useLocale } from '@/lib/i18n';
 import {
   Tooltip,
   TooltipContent,
@@ -9,10 +10,15 @@ import {
 } from '@/components/ui/tooltip';
 import { cn, formatNumber } from '@/lib/utils';
 
-const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const DAYS_DE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const DAYS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+  const days = isDe ? DAYS_DE : DAYS_EN;
+
   const [metricMode, setMetricMode] = useState<'visitors' | 'conversions'>('visitors');
 
   const getCellColor = (intensity: number) => {
@@ -39,7 +45,7 @@ export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
                 : 'text-zinc-500 hover:text-zinc-900'
             )}
           >
-            Besucher-Dichte
+            {isDe ? 'Besucher-Dichte' : 'Visitor Density'}
           </button>
           <button
             type="button"
@@ -51,13 +57,13 @@ export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
                 : 'text-zinc-500 hover:text-zinc-900'
             )}
           >
-            Checkout-Conversions
+            {isDe ? 'Checkout-Conversions' : 'Checkout Conversions'}
           </button>
         </div>
 
         {/* Color Intensity Scale */}
         <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-          <span>Niedrig</span>
+          <span>{isDe ? 'Niedrig' : 'Low'}</span>
           <div className="flex items-center gap-1">
             <span className="h-3 w-5 rounded-xs bg-zinc-100 border border-zinc-200" />
             <span className="h-3 w-5 rounded-xs bg-zinc-200" />
@@ -66,7 +72,7 @@ export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
             <span className="h-3 w-5 rounded-xs bg-zinc-800" />
             <span className="h-3 w-5 rounded-xs bg-zinc-950" />
           </div>
-          <span>Peak (20:00–22:00 Uhr)</span>
+          <span>{isDe ? 'Peak (20:00–22:00 Uhr)' : 'Peak (20:00–22:00)'}</span>
         </div>
       </div>
 
@@ -75,7 +81,9 @@ export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
         <div className="min-w-[720px]">
           {/* Hour Labels Header */}
           <div className="mb-1.5 grid grid-cols-[44px_repeat(24,minmax(0,1fr))] gap-1">
-            <div className="text-[10px] font-mono text-zinc-400">Tag</div>
+            <div className="text-[10px] font-mono text-zinc-400">
+              {isDe ? 'Tag' : 'Day'}
+            </div>
             {HOURS.map((hour) => (
               <div
                 key={hour}
@@ -88,22 +96,22 @@ export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
 
           {/* Rows per Day */}
           <div className="space-y-1">
-            {DAYS.map((day, dIdx) => {
+            {days.map((dayLabel, dIdx) => {
               const rowCells = cells.filter((c) => c.dayIndex === dIdx);
               return (
                 <div
-                  key={day}
+                  key={dayLabel}
                   className="grid grid-cols-[44px_repeat(24,minmax(0,1fr))] items-center gap-1"
                 >
                   <div className="font-mono text-xs font-medium text-zinc-600">
-                    {day}
+                    {dayLabel}
                   </div>
                   {rowCells.map((cell) => (
                     <Tooltip key={`${cell.day}-${cell.hour}`}>
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          aria-label={`${cell.day} ${cell.hourLabel}: ${cell.visitors} Besucher, ${cell.conversions} Bestellungen`}
+                          aria-label={`${dayLabel} ${cell.hourLabel}: ${cell.visitors} visitors, ${cell.conversions} orders`}
                           className={cn(
                             'h-7 w-full rounded-md font-mono text-[9px] transition-transform hover:z-10 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
                             getCellColor(cell.intensity)
@@ -117,13 +125,21 @@ export function TrafficHeatmap({ cells }: { cells: HourlyHeatmapCell[] }) {
                       <TooltipContent>
                         <div className="space-y-0.5">
                           <p className="font-semibold">
-                            {cell.day}, {cell.hourLabel} – {String((cell.hour + 1) % 24).padStart(2, '0')}:00 Uhr
+                            {dayLabel}, {cell.hourLabel} –{' '}
+                            {String((cell.hour + 1) % 24).padStart(2, '0')}:00
                           </p>
                           <p className="text-zinc-300">
-                            Besucher: <span className="font-mono text-white">{formatNumber(cell.visitors)}</span>
+                            {isDe ? 'Besucher:' : 'Visitors:'}{' '}
+                            <span className="font-mono text-white">
+                              {formatNumber(cell.visitors)}
+                            </span>
                           </p>
                           <p className="text-zinc-300">
-                            Bestellungen: <span className="font-mono text-emerald-400">{cell.conversions}</span> ({cell.conversionRate}%)
+                            {isDe ? 'Bestellungen:' : 'Orders:'}{' '}
+                            <span className="font-mono text-emerald-400">
+                              {cell.conversions}
+                            </span>{' '}
+                            ({cell.conversionRate}%)
                           </p>
                         </div>
                       </TooltipContent>

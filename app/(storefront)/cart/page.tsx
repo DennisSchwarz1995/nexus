@@ -15,12 +15,12 @@ import {
   CreditCard,
   Truck,
   Sparkles,
-  Terminal,
   RotateCcw,
 } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { ALL_PRODUCTS } from '@/lib/commerce';
-import { cn, formatCurrency, DASHBOARD_URL } from '@/lib/utils';
+import { useLocale, translateCategory } from '@/lib/i18n';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface OrderReceipt {
@@ -29,10 +29,12 @@ interface OrderReceipt {
   customerEmail: string;
   amountTotal: number;
   processedAt: string;
-  eventType: string;
 }
 
 export default function CartAndCheckoutPage() {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+
   const {
     items,
     promoCode,
@@ -81,10 +83,14 @@ export default function CartAndCheckoutPage() {
     if (!promoInput.trim()) return;
     const res = applyPromoCode(promoInput);
     if (res.valid) {
-      toast.success('Rabattcode aktiviert', { description: res.message });
+      toast.success(isDe ? 'Rabattcode aktiviert' : 'Privilege code applied', {
+        description: res.message,
+      });
       setPromoInput('');
     } else {
-      toast.error('Ungültiger Code', { description: res.message });
+      toast.error(isDe ? 'Ungültiger Code' : 'Invalid code', {
+        description: res.message,
+      });
     }
   };
 
@@ -124,15 +130,25 @@ export default function CartAndCheckoutPage() {
         customerEmail: data.customerEmail,
         amountTotal: finalTotal,
         processedAt: data.processedAt,
-        eventType: data.eventType,
       });
 
       clearCart();
-      toast.success(`Bestellung ${data.orderNumber} erfolgreich ausgelöst!`, {
-        description: 'Stripe Webhook Event checkout.session.completed verifiziert.',
-      });
+      toast.success(
+        isDe
+          ? `Bestellung ${data.orderNumber} bestätigt`
+          : `Order ${data.orderNumber} confirmed`,
+        {
+          description: isDe
+            ? 'Ihre Auftragsbestätigung wurde per E-Mail versendet.'
+            : 'Your order confirmation has been dispatched via email.',
+        }
+      );
     } catch {
-      toast.error('Fehler bei der Checkout-Simulation');
+      toast.error(
+        isDe
+          ? 'Zahlungsautorisierung fehlgeschlagen'
+          : 'Payment authorization failed'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -182,7 +198,11 @@ export default function CartAndCheckoutPage() {
       );
     }
     setReceipt(null);
-    toast.success('Referenz-Warenkorb wiederhergestellt');
+    toast.success(
+      isDe
+        ? 'Auswahl wiederhergestellt'
+        : 'Sample selection restored'
+    );
   };
 
   if (!mounted) {
@@ -199,13 +219,15 @@ export default function CartAndCheckoutPage() {
       <div className="flex flex-col justify-between gap-4 border-b border-zinc-200/80 pb-8 sm:flex-row sm:items-end">
         <div>
           <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Storefront // Checkout-Engine
+            {isDe ? 'NEXUS Atelier // Bestellung' : 'NEXUS Atelier // Order'}
           </span>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
-            Warenkorb & Checkout-Simulation
+            {isDe ? 'Warenkorb & Kasse' : 'Shopping Bag & Checkout'}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Optimistisches State-Management via Zustand mit direkter Anbindung an den Stripe-Webhook-Endpunkt.
+            {isDe
+              ? 'Versicherter Direktversand ab Manufaktur München · 30 Tage Rückgaberecht.'
+              : 'Insured direct courier delivery from our Munich manufactory · 30-day return policy.'}
           </p>
         </div>
 
@@ -213,98 +235,96 @@ export default function CartAndCheckoutPage() {
           href="/products"
           className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-700 hover:text-zinc-950"
         >
-          <span>Weiter einkaufen</span>
+          <span>{isDe ? 'Weiter einkaufen' : 'Continue Shopping'}</span>
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
-      {/* Order Confirmation View if Checkout just completed */}
+      {/* Order Confirmation View */}
       {receipt ? (
         <div className="mt-10 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-xl">
           <div className="border-b border-zinc-100 bg-zinc-950 p-8 text-white sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/30">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>Stripe Webhook Event verifiziert ({receipt.eventType})</span>
+              <span>
+                {isDe ? 'Auftrag bestätigt & in Fertigungsprüfung' : 'Order Confirmed & Queued for Dispatch'}
+              </span>
             </div>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
-              Vielen Dank für Ihre Bestellung, {customerName}.
+              {isDe
+                ? `Vielen Dank für Ihre Bestellung, ${customerName}.`
+                : `Thank you for your order, ${customerName}.`}
             </h2>
             <p className="mt-2 text-sm text-zinc-400">
-              Ihre Auftragsbestätigung für Bestellung{' '}
-              <strong className="font-mono text-white">{receipt.orderNumber}</strong> wurde an{' '}
-              <span className="text-zinc-200 underline">{receipt.customerEmail}</span> gesendet.
+              {isDe ? (
+                <>
+                  Ihre Auftragsbestätigung für Bestellung{' '}
+                  <strong className="font-mono text-white">{receipt.orderNumber}</strong> wurde an{' '}
+                  <span className="text-zinc-200 underline">{receipt.customerEmail}</span> gesendet.
+                </>
+              ) : (
+                <>
+                  Your confirmation for order{' '}
+                  <strong className="font-mono text-white">{receipt.orderNumber}</strong> has been sent to{' '}
+                  <span className="text-zinc-200 underline">{receipt.customerEmail}</span>.
+                </>
+              )}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 p-8 sm:p-10 lg:grid-cols-12">
-            <div className="space-y-4 lg:col-span-7">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Transaktions-Details
-              </h3>
-              <div className="divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-zinc-50/50 px-5">
-                <div className="flex justify-between py-3.5 text-xs">
-                  <span className="text-zinc-500">Bestellnummer</span>
-                  <span className="font-mono font-semibold text-zinc-950">
-                    {receipt.orderNumber}
-                  </span>
-                </div>
-                <div className="flex justify-between py-3.5 text-xs">
-                  <span className="text-zinc-500">Stripe Session-ID</span>
-                  <span className="font-mono text-zinc-800">{receipt.stripeSessionId}</span>
-                </div>
-                <div className="flex justify-between py-3.5 text-xs">
-                  <span className="text-zinc-500">Gesamtbetrag (inkl. MwSt.)</span>
-                  <span className="font-mono font-semibold text-zinc-950">
-                    {formatCurrency(receipt.amountTotal)}
-                  </span>
-                </div>
-                <div className="flex justify-between py-3.5 text-xs">
-                  <span className="text-zinc-500">Lieferadresse</span>
-                  <span className="font-medium text-zinc-800">{shippingAddress}</span>
-                </div>
+          <div className="p-8 sm:p-10">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              {isDe ? 'Auftragsübersicht' : 'Order Summary'}
+            </h3>
+            <div className="mt-4 max-w-2xl divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-zinc-50/50 px-5">
+              <div className="flex justify-between py-3.5 text-xs">
+                <span className="text-zinc-500">
+                  {isDe ? 'Bestellnummer' : 'Order Number'}
+                </span>
+                <span className="font-mono font-semibold text-zinc-950">
+                  {receipt.orderNumber}
+                </span>
               </div>
-
-              <div className="flex flex-wrap gap-3 pt-3">
-                <a
-                  href={`${DASHBOARD_URL}/overview`}
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white hover:bg-zinc-800"
-                >
-                  <span>Bestellung im Admin-Dashboard prüfen</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
-                <button
-                  type="button"
-                  onClick={handleRestoreSampleCart}
-                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-800 hover:bg-zinc-50"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  <span>Neuen Test-Warenkorb befüllen</span>
-                </button>
+              <div className="flex justify-between py-3.5 text-xs">
+                <span className="text-zinc-500">
+                  {isDe ? 'Transaktions-Referenz' : 'Transaction Reference'}
+                </span>
+                <span className="font-mono text-zinc-800">{receipt.stripeSessionId}</span>
+              </div>
+              <div className="flex justify-between py-3.5 text-xs">
+                <span className="text-zinc-500">
+                  {isDe ? 'Gesamtbetrag (inkl. MwSt.)' : 'Total Amount (incl. VAT)'}
+                </span>
+                <span className="font-mono font-semibold text-zinc-950">
+                  {formatCurrency(receipt.amountTotal)}
+                </span>
+              </div>
+              <div className="flex justify-between py-3.5 text-xs">
+                <span className="text-zinc-500">
+                  {isDe ? 'Lieferanschrift' : 'Delivery Address'}
+                </span>
+                <span className="font-medium text-zinc-800">{shippingAddress}</span>
               </div>
             </div>
 
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 text-zinc-200">
-                <div className="flex items-center gap-2 border-b border-zinc-800 pb-3 text-xs font-mono text-zinc-400">
-                  <Terminal className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>POST /api/webhooks/stripe · 200 OK</span>
-                </div>
-                <pre className="mt-3 overflow-x-auto font-mono text-[11px] leading-relaxed text-emerald-300">
-                  {JSON.stringify(
-                    {
-                      received: true,
-                      webhookVerified: true,
-                      eventType: receipt.eventType,
-                      orderNumber: receipt.orderNumber,
-                      stripeSessionId: receipt.stripeSessionId,
-                      amountTotal: receipt.amountTotal,
-                      processedAt: receipt.processedAt,
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/products"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white hover:bg-zinc-800"
+              >
+                <span>{isDe ? 'Zurück zur Kollektion' : 'Return to Collection'}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              <button
+                type="button"
+                onClick={handleRestoreSampleCart}
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-800 hover:bg-zinc-50"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>
+                  {isDe ? 'Weitere Bestellung zusammenstellen' : 'Start Another Order'}
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -314,17 +334,19 @@ export default function CartAndCheckoutPage() {
             <ShoppingBag className="h-6 w-6" />
           </div>
           <h2 className="mt-4 text-lg font-semibold text-zinc-950">
-            Ihr Warenkorb ist aktuell leer
+            {isDe ? 'Ihr Warenkorb ist aktuell leer' : 'Your shopping bag is currently empty'}
           </h2>
           <p className="mt-1 max-w-md text-xs text-zinc-500">
-            Fügen Sie Produkte aus dem Katalog hinzu oder laden Sie mit einem Klick unseren Referenz-Warenkorb zum Testen der Checkout-Simulation.
+            {isDe
+              ? 'Wählen Sie Modelle aus unserer Kollektion oder laden Sie unsere kuratierte Studio-Empfehlung.'
+              : 'Select instruments from our collection or load our curated studio recommendation.'}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
               href="/products"
               className="inline-flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white hover:bg-zinc-800"
             >
-              <span>Zum Produktkatalog</span>
+              <span>{isDe ? 'Kollektion entdecken' : 'Explore Collection'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <button
@@ -333,7 +355,9 @@ export default function CartAndCheckoutPage() {
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-zinc-200 bg-white px-5 text-xs font-semibold text-zinc-900 hover:bg-zinc-50"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Referenz-Warenkorb laden</span>
+              <span>
+                {isDe ? 'Studio-Empfehlung in den Warenkorb legen' : 'Load Studio Recommendation'}
+              </span>
             </button>
           </div>
         </div>
@@ -344,17 +368,21 @@ export default function CartAndCheckoutPage() {
             <div className="rounded-2xl border border-zinc-200/90 bg-white">
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
                 <h2 className="text-sm font-semibold text-zinc-950">
-                  Positionen ({items.reduce((a, b) => a + b.quantity, 0)} Artikel)
+                  {isDe
+                    ? `Ausgewählte Modelle (${items.reduce((a, b) => a + b.quantity, 0)})`
+                    : `Selected Models (${items.reduce((a, b) => a + b.quantity, 0)})`}
                 </h2>
                 <button
                   type="button"
                   onClick={() => {
                     clearCart();
-                    toast.info('Warenkorb wurde geleert');
+                    toast.info(
+                      isDe ? 'Warenkorb wurde geleert' : 'Shopping bag cleared'
+                    );
                   }}
                   className="text-xs font-medium text-zinc-400 hover:text-red-600"
                 >
-                  Alle entfernen
+                  {isDe ? 'Alle entfernen' : 'Clear all'}
                 </button>
               </div>
 
@@ -374,7 +402,7 @@ export default function CartAndCheckoutPage() {
                           </span>
                           <span className="text-[10px] text-zinc-300">•</span>
                           <span className="text-[11px] font-medium text-zinc-500">
-                            {item.category}
+                            {translateCategory(item.category, locale)}
                           </span>
                         </div>
                         <Link
@@ -388,7 +416,9 @@ export default function CartAndCheckoutPage() {
                             className="inline-block h-3 w-3 rounded-full border border-zinc-300"
                             style={{ backgroundColor: item.variantHex }}
                           />
-                          <span>Variante: {item.variantName}</span>
+                          <span>
+                            {isDe ? 'Ausführung' : 'Finish'}: {item.variantName}
+                          </span>
                         </div>
                       </div>
 
@@ -396,7 +426,7 @@ export default function CartAndCheckoutPage() {
                         <div className="inline-flex items-center rounded-xl border border-zinc-200 bg-zinc-50/70">
                           <button
                             type="button"
-                            aria-label="Menge reduzieren"
+                            aria-label={isDe ? 'Menge reduzieren' : 'Decrease quantity'}
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="px-2.5 py-1.5 text-zinc-600 hover:text-zinc-950"
                           >
@@ -407,7 +437,7 @@ export default function CartAndCheckoutPage() {
                           </span>
                           <button
                             type="button"
-                            aria-label="Menge erhöhen"
+                            aria-label={isDe ? 'Menge erhöhen' : 'Increase quantity'}
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="px-2.5 py-1.5 text-zinc-600 hover:text-zinc-950"
                           >
@@ -420,14 +450,14 @@ export default function CartAndCheckoutPage() {
                             {formatCurrency(item.price * item.quantity)}
                           </p>
                           <p className="font-mono text-[11px] text-zinc-400">
-                            {formatCurrency(item.price)} / Stk.
+                            {formatCurrency(item.price)} / {isDe ? 'Stk.' : 'ea.'}
                           </p>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}
-                          aria-label={`${item.name} löschen`}
+                          aria-label={isDe ? `${item.name} löschen` : `Remove ${item.name}`}
                           className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -443,7 +473,7 @@ export default function CartAndCheckoutPage() {
             <div className="rounded-2xl border border-zinc-200/90 bg-white p-6">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 <Truck className="h-4 w-4 text-zinc-900" />
-                <span>Logistik & Versandart</span>
+                <span>{isDe ? 'Logistik & Versandart' : 'Delivery & Logistics'}</span>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -462,11 +492,17 @@ export default function CartAndCheckoutPage() {
                       DHL Express Ident (24h)
                     </span>
                     <span className="font-mono text-xs font-semibold text-emerald-700">
-                      {subtotal >= 250 ? 'Kostenfrei' : formatCurrency(14.9)}
+                      {subtotal >= 250
+                        ? isDe
+                          ? 'Kostenfrei'
+                          : 'Complimentary'
+                        : formatCurrency(14.9)}
                     </span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-zinc-500">
-                    Versicherter Direktversand bis 25.000 € mit persönlicher Übergabe.
+                    {isDe
+                      ? 'Versicherter Direktversand bis 25.000 € mit persönlicher Übergabe.'
+                      : 'Insured direct courier delivery up to €25,000 with signature confirmation.'}
                   </p>
                 </button>
 
@@ -489,24 +525,28 @@ export default function CartAndCheckoutPage() {
                     </span>
                   </div>
                   <p className="mt-1.5 text-[11px] text-zinc-500">
-                    Terminierte Zustellung im 2-Stunden-Zeitfenster inkl. Verpackungsrücknahme.
+                    {isDe
+                      ? 'Terminierte Zustellung im 2-Stunden-Zeitfenster inkl. Verpackungsrücknahme.'
+                      : 'Scheduled delivery within a 2-hour window including packaging removal.'}
                   </p>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Order Summary, Promo Code & Stripe Checkout Form */}
+          {/* Right Column: Order Summary, Promo Code & Checkout Form */}
           <div className="space-y-6 lg:col-span-5">
             <div className="rounded-2xl border border-zinc-200/90 bg-zinc-50/60 p-6">
               <h2 className="text-sm font-semibold text-zinc-950">
-                Bestellübersicht & Konditionen
+                {isDe ? 'Bestellübersicht & Konditionen' : 'Order Summary & Conditions'}
               </h2>
 
               {/* Promo Code Form */}
               <form onSubmit={handlePromoSubmit} className="mt-4">
                 <label className="block text-[11px] font-medium text-zinc-500">
-                  Gutscheincode / Architektur-Kennung
+                  {isDe
+                    ? 'Gutscheincode / Partner-Kennung'
+                    : 'Privilege Code / Partner ID'}
                 </label>
                 <div className="mt-1.5 flex gap-2">
                   <div className="relative flex-1">
@@ -515,7 +555,7 @@ export default function CartAndCheckoutPage() {
                       type="text"
                       value={promoInput}
                       onChange={(e) => setPromoInput(e.target.value)}
-                      placeholder="z. B. NEXUS10"
+                      placeholder="NEXUS10"
                       className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-3 font-mono text-xs uppercase text-zinc-900 placeholder:normal-case placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none"
                     />
                   </div>
@@ -523,12 +563,14 @@ export default function CartAndCheckoutPage() {
                     type="submit"
                     className="rounded-xl border border-zinc-200 bg-white px-4 text-xs font-semibold text-zinc-900 hover:bg-zinc-100"
                   >
-                    Einlösen
+                    {isDe ? 'Einlösen' : 'Apply'}
                   </button>
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] text-zinc-400">Schnellwahl:</span>
+                  <span className="text-[10px] text-zinc-400">
+                    {isDe ? 'Verfügbar:' : 'Available:'}
+                  </span>
                   {['NEXUS10', 'ARCHITECT15', 'VIP20'].map((code) => (
                     <button
                       key={code}
@@ -553,7 +595,7 @@ export default function CartAndCheckoutPage() {
                       onClick={removePromoCode}
                       className="ml-auto text-[10px] text-zinc-400 underline hover:text-zinc-700"
                     >
-                      Code entfernen
+                      {isDe ? 'Entfernen' : 'Remove'}
                     </button>
                   )}
                 </div>
@@ -562,48 +604,61 @@ export default function CartAndCheckoutPage() {
               {/* Price Breakdown */}
               <div className="mt-6 space-y-2.5 border-t border-zinc-200/80 pt-4 text-xs">
                 <div className="flex justify-between text-zinc-600">
-                  <span>Zwischensumme</span>
+                  <span>{isDe ? 'Zwischensumme' : 'Subtotal'}</span>
                   <span className="font-mono font-medium text-zinc-900">
                     {formatCurrency(subtotal)}
                   </span>
                 </div>
                 {discountPercent > 0 && (
                   <div className="flex justify-between text-emerald-700">
-                    <span>Rabatt ({promoCode} · {discountPercent} %)</span>
+                    <span>
+                      {isDe ? 'Nachlass' : 'Privilege Discount'} ({promoCode} ·{' '}
+                      {discountPercent}%)
+                    </span>
                     <span className="font-mono font-semibold">
                       -{formatCurrency(discountAmount)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between text-zinc-600">
-                  <span>Versandkosten</span>
+                  <span>{isDe ? 'Versandkosten' : 'Shipping'}</span>
                   <span className="font-mono font-medium text-zinc-900">
-                    {shippingCost === 0 ? 'Kostenfrei' : formatCurrency(shippingCost)}
+                    {shippingCost === 0
+                      ? isDe
+                        ? 'Kostenfrei'
+                        : 'Complimentary'
+                      : formatCurrency(shippingCost)}
                   </span>
                 </div>
                 <div className="flex justify-between text-[11px] text-zinc-400">
-                  <span>Enthaltene gesetzl. MwSt. (19 %)</span>
+                  <span>
+                    {isDe
+                      ? 'Enthaltene gesetzl. MwSt. (19 %)'
+                      : 'Included VAT (19%)'}
+                  </span>
                   <span className="font-mono">{formatCurrency(includedVat)}</span>
                 </div>
                 <div className="flex justify-between border-t border-zinc-200/80 pt-3 text-base font-semibold text-zinc-950">
-                  <span>Gesamtsumme</span>
+                  <span>{isDe ? 'Gesamtsumme' : 'Total'}</span>
                   <span className="font-mono">{formatCurrency(finalTotal)}</span>
                 </div>
               </div>
 
-              {/* Simulated Checkout Customer & Payment Form */}
+              {/* Customer & Payment Form */}
               <form
                 onSubmit={handleSimulateCheckout}
                 className="mt-6 space-y-4 border-t border-zinc-200/80 pt-6"
               >
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Empfänger & Zahlungsautorisierung
+                  {isDe
+                    ? 'Lieferanschrift & Zahlungsart'
+                    : 'Delivery Address & Payment Method'}
                 </h3>
 
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-600">
-                      Vollständiger Name / Studio
+                      {isDe ? 'Vollständiger Name / Studio' : 'Full Name / Studio'}
                     </label>
                     <input
                       type="text"
@@ -615,7 +670,9 @@ export default function CartAndCheckoutPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-600">
-                      E-Mail für Rechnung & Sendungsverfolgung
+                      {isDe
+                        ? 'E-Mail für Rechnung & Sendungsverfolgung'
+                        : 'Email for Invoice & Tracking'}
                     </label>
                     <input
                       type="email"
@@ -627,7 +684,7 @@ export default function CartAndCheckoutPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-medium text-zinc-600">
-                      Lieferanschrift
+                      {isDe ? 'Lieferanschrift' : 'Shipping Address'}
                     </label>
                     <input
                       type="text"
@@ -643,7 +700,7 @@ export default function CartAndCheckoutPage() {
                 <div className="grid grid-cols-3 gap-2 pt-1">
                   {[
                     { id: 'stripe', label: 'Apple Pay' },
-                    { id: 'card', label: 'Kreditkarte' },
+                    { id: 'card', label: isDe ? 'Kreditkarte' : 'Credit Card' },
                     { id: 'sepa', label: 'SEPA-Instant' },
                   ].map((pm) => (
                     <button
@@ -671,11 +728,19 @@ export default function CartAndCheckoutPage() {
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Autorisiere Stripe Webhook...</span>
+                      <span>
+                        {isDe
+                          ? 'Autorisiere Zahlung...'
+                          : 'Authorizing payment...'}
+                      </span>
                     </>
                   ) : (
                     <>
-                      <span>Zahlungspflichtig bestellen ({formatCurrency(finalTotal)})</span>
+                      <span>
+                        {isDe
+                          ? `Zahlungspflichtig bestellen (${formatCurrency(finalTotal)})`
+                          : `Complete Order (${formatCurrency(finalTotal)})`}
+                      </span>
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -683,7 +748,11 @@ export default function CartAndCheckoutPage() {
 
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Simuliert Webhook-Signaturprüfung unter /api/webhooks/stripe</span>
+                  <span>
+                    {isDe
+                      ? '256-Bit TLS-Verschlüsselung · Käuferschutz & 5 Jahre Garantie'
+                      : '256-Bit TLS Encryption · Buyer Protection & 5-Year Warranty'}
+                  </span>
                 </div>
               </form>
             </div>

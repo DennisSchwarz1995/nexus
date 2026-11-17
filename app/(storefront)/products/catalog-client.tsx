@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Product } from '@/types';
 import { PRODUCT_CATEGORIES } from '@/lib/commerce';
+import { useLocale, localizeProduct, translateCategory } from '@/lib/i18n';
 import { ProductCard } from '@/components/ui/product-card';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -26,6 +27,9 @@ import { cn, formatCurrency } from '@/lib/utils';
 const BATCH_SIZE = 12;
 
 export function CatalogClient({ initialProducts }: { initialProducts: Product[] }) {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -49,13 +53,12 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
     }
   }, [searchParams]);
 
-  // Reset visible count whenever filters change
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
   }, [selectedCategory, searchQuery, maxPrice, inStockOnly, sortBy]);
 
   const filteredProducts = useMemo(() => {
-    let result = [...initialProducts];
+    let result = initialProducts.map((p) => localizeProduct(p, locale));
 
     if (selectedCategory !== 'ALL') {
       result = result.filter((p) => p.category === selectedCategory);
@@ -97,7 +100,7 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
     });
 
     return result;
-  }, [initialProducts, selectedCategory, searchQuery, maxPrice, inStockOnly, sortBy]);
+  }, [initialProducts, locale, selectedCategory, searchQuery, maxPrice, inStockOnly, sortBy]);
 
   const visibleProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
@@ -106,7 +109,6 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
 
   const hasMore = visibleCount < filteredProducts.length;
 
-  // IntersectionObserver for smooth Infinite Scroll
   useEffect(() => {
     const target = loadMoreTriggerRef.current;
     if (!target || !hasMore) return;
@@ -147,20 +149,49 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400">
             <Sparkles className="h-3.5 w-3.5 text-zinc-900" />
-            <span>Gesamtkatalog // 2026</span>
+            <span>
+              {isDe ? 'Atelier Kollektion // 2026' : 'Atelier Collection // 2026'}
+            </span>
           </div>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
-            Präzisions-Komponenten & Systeme
+            {isDe
+              ? 'Präzisions-Komponenten & Systeme'
+              : 'Precision Instruments & Systems'}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-500">
-            Echtzeit-Filterung kombiniert mit verzögerungsfreiem Infinite-Scroll über alle {initialProducts.length} freigegebenen Manufaktur-Artikel.
+            {isDe
+              ? `Entdecken Sie alle ${initialProducts.length} gefertigten Modelle aus unseren fünf Atelier-Disziplinen.`
+              : `Explore all ${initialProducts.length} precision-crafted models across our five studio disciplines.`}
           </p>
         </div>
 
         <div className="flex items-center gap-3 self-start md:self-auto">
           <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-3.5 py-2 text-xs text-zinc-600">
-            Zeige <strong className="font-mono font-semibold text-zinc-950">{visibleProducts.length}</strong> von{' '}
-            <strong className="font-mono font-semibold text-zinc-950">{filteredProducts.length}</strong> Produkten
+            {isDe ? (
+              <>
+                Zeige{' '}
+                <strong className="font-mono font-semibold text-zinc-950">
+                  {visibleProducts.length}
+                </strong>{' '}
+                von{' '}
+                <strong className="font-mono font-semibold text-zinc-950">
+                  {filteredProducts.length}
+                </strong>{' '}
+                Modellen
+              </>
+            ) : (
+              <>
+                Showing{' '}
+                <strong className="font-mono font-semibold text-zinc-950">
+                  {visibleProducts.length}
+                </strong>{' '}
+                of{' '}
+                <strong className="font-mono font-semibold text-zinc-950">
+                  {filteredProducts.length}
+                </strong>{' '}
+                models
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -173,11 +204,13 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
           className={cn(
             'shrink-0 rounded-xl px-4 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950',
             selectedCategory === 'ALL'
-              ? 'bg-zinc-950 text-white shadow-sm'
+              ? 'bg-zinc-950 text-white shadow-xs'
               : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-950'
           )}
         >
-          Alle Disziplinen ({initialProducts.length})
+          {isDe
+            ? `Alle Disziplinen (${initialProducts.length})`
+            : `All Disciplines (${initialProducts.length})`}
         </button>
         {PRODUCT_CATEGORIES.map((category) => {
           const count = initialProducts.filter((p) => p.category === category).length;
@@ -190,11 +223,12 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
               className={cn(
                 'shrink-0 rounded-xl px-4 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950',
                 active
-                  ? 'bg-zinc-950 text-white shadow-sm'
+                  ? 'bg-zinc-950 text-white shadow-xs'
                   : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-950'
               )}
             >
-              {category} <span className="ml-1 font-mono opacity-65">({count})</span>
+              {translateCategory(category, locale)}{' '}
+              <span className="ml-1 font-mono opacity-65">({count})</span>
             </button>
           );
         })}
@@ -209,8 +243,12 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Modell, Werkstoff oder SKU filtern..."
-            aria-label="Produkte filtern"
+            placeholder={
+              isDe
+                ? 'Modell, Werkstoff oder Artikelnummer filtern...'
+                : 'Filter by model, material, or SKU...'
+            }
+            aria-label={isDe ? 'Produkte filtern' : 'Filter products'}
             className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-950 focus:outline-none focus:ring-1 focus:ring-zinc-950"
           />
         </div>
@@ -220,9 +258,15 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
           <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
           <div className="flex-1">
             <div className="flex justify-between text-[11px]">
-              <span className="text-zinc-500">Max. Preis</span>
+              <span className="text-zinc-500">
+                {isDe ? 'Max. Preis' : 'Max. Price'}
+              </span>
               <span className="font-mono font-semibold text-zinc-900">
-                {maxPrice >= 2200 ? 'Unbegrenzt' : formatCurrency(maxPrice)}
+                {maxPrice >= 2200
+                  ? isDe
+                    ? 'Alle Preise'
+                    : 'Any Price'
+                  : formatCurrency(maxPrice)}
               </span>
             </div>
             <input
@@ -232,7 +276,7 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
               step={50}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              aria-label="Maximaler Preis"
+              aria-label={isDe ? 'Maximaler Preis' : 'Maximum price'}
               className="mt-1 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-zinc-200 accent-zinc-950"
             />
           </div>
@@ -244,28 +288,42 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
             htmlFor="stock-switch"
             className="cursor-pointer text-xs font-medium text-zinc-700"
           >
-            Auf Lager
+            {isDe ? 'Auf Lager' : 'In Stock'}
           </label>
           <Switch
             id="stock-switch"
             checked={inStockOnly}
             onCheckedChange={setInStockOnly}
-            aria-label="Nur sofort lieferbare Produkte anzeigen"
+            aria-label={
+              isDe
+                ? 'Nur sofort lieferbare Produkte anzeigen'
+                : 'Show in-stock items only'
+            }
           />
         </div>
 
         {/* Sort Select (Radix Select) */}
         <div className="flex items-center gap-2 md:col-span-3">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger aria-label="Sortierung wählen">
-              <SelectValue placeholder="Sortierung" />
+            <SelectTrigger aria-label={isDe ? 'Sortierung wählen' : 'Sort by'}>
+              <SelectValue placeholder={isDe ? 'Sortierung' : 'Sort by'} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="featured">Empfohlen & Flaggschiffe</SelectItem>
-              <SelectItem value="sales">Meistverkauft</SelectItem>
-              <SelectItem value="rating">Beste Bewertung</SelectItem>
-              <SelectItem value="price-asc">Preis: Aufsteigend</SelectItem>
-              <SelectItem value="price-desc">Preis: Absteigend</SelectItem>
+              <SelectItem value="featured">
+                {isDe ? 'Empfohlen & Flaggschiffe' : 'Featured & Flagships'}
+              </SelectItem>
+              <SelectItem value="sales">
+                {isDe ? 'Meistgefragt' : 'Most Popular'}
+              </SelectItem>
+              <SelectItem value="rating">
+                {isDe ? 'Beste Bewertung' : 'Highest Rated'}
+              </SelectItem>
+              <SelectItem value="price-asc">
+                {isDe ? 'Preis: Aufsteigend' : 'Price: Low to High'}
+              </SelectItem>
+              <SelectItem value="price-desc">
+                {isDe ? 'Preis: Absteigend' : 'Price: High to Low'}
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -277,8 +335,8 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
             <button
               type="button"
               onClick={handleResetFilters}
-              title="Filter zurücksetzen"
-              aria-label="Alle Filter zurücksetzen"
+              title={isDe ? 'Filter zurücksetzen' : 'Reset filters'}
+              aria-label={isDe ? 'Alle Filter zurücksetzen' : 'Reset all filters'}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -291,10 +349,14 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
       {filteredProducts.length === 0 ? (
         <div className="my-16 flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/40 px-6 py-16 text-center">
           <p className="text-base font-semibold text-zinc-900">
-            Keine Produkte entsprechen Ihren aktuellen Filterkriterien
+            {isDe
+              ? 'Keine Modelle entsprechen Ihrer aktuellen Auswahl'
+              : 'No models match your current filter selection'}
           </p>
           <p className="mt-1 max-w-md text-xs text-zinc-500">
-            Passen Sie den Preisrahmen oder den Suchbegriff an, um weitere Komponenten anzuzeigen.
+            {isDe
+              ? 'Passen Sie den Preisrahmen oder den Suchbegriff an, um weitere Komponenten anzuzeigen.'
+              : 'Adjust the price range or search term to explore additional instruments.'}
           </p>
           <button
             type="button"
@@ -302,7 +364,7 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
             className="mt-5 inline-flex items-center gap-2 rounded-xl bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-white hover:bg-zinc-800"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Alle Filter zurücksetzen
+            <span>{isDe ? 'Alle Filter zurücksetzen' : 'Reset all filters'}</span>
           </button>
         </div>
       ) : (
@@ -320,7 +382,9 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
           >
             <div className="w-full max-w-xs">
               <div className="flex justify-between text-xs text-zinc-500">
-                <span>Katalog-Fortschritt</span>
+                <span>
+                  {isDe ? 'Angezeigte Modelle' : 'Models displayed'}
+                </span>
                 <span className="font-mono font-medium text-zinc-900">
                   {visibleProducts.length} / {filteredProducts.length}
                 </span>
@@ -352,16 +416,32 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
                 {isLoadingMore ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-500" />
-                    <span>Lade weitere Produkte...</span>
+                    <span>
+                      {isDe ? 'Lade weitere Modelle...' : 'Loading more models...'}
+                    </span>
                   </>
                 ) : (
-                  <span>Weitere {Math.min(BATCH_SIZE, filteredProducts.length - visibleCount)} Produkte laden (Auto-Scroll aktiv)</span>
+                  <span>
+                    {isDe
+                      ? `Weitere ${Math.min(
+                          BATCH_SIZE,
+                          filteredProducts.length - visibleCount
+                        )} Modelle anzeigen`
+                      : `Load ${Math.min(
+                          BATCH_SIZE,
+                          filteredProducts.length - visibleCount
+                        )} more models`}
+                  </span>
                 )}
               </button>
             ) : (
               <div className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Alle {filteredProducts.length} Produkte dieser Ansicht geladen.</span>
+                <span>
+                  {isDe
+                    ? `Alle ${filteredProducts.length} Modelle dieser Kollektion geladen.`
+                    : `All ${filteredProducts.length} models in this collection loaded.`}
+                </span>
               </div>
             )}
           </div>
