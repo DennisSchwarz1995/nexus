@@ -3,6 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 const SHOP_ORIGIN = "https://shop.dennis-schwarz.dev";
 const DASHBOARD_ORIGIN = "https://dashboard.dennis-schwarz.dev";
 
+const LEGACY_CATEGORY_TO_SLUG: Record<string, string> = {
+  "audio & acoustics": "audio",
+  audio: "audio",
+  "precision input": "input",
+  input: "input",
+  "modular desk": "desk-systems",
+  "desk-systems": "desk-systems",
+  workstations: "workstations",
+  "architectural lighting": "lighting",
+  lighting: "lighting",
+};
+
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
@@ -26,6 +38,24 @@ export function middleware(request: NextRequest) {
   const isDashboardHost =
     host.startsWith("dashboard.") || host.startsWith("admin.");
   const isShopHost = host.startsWith("shop.");
+
+  // Backwards compatibility: redirect legacy /products?category=... to /products/[category-slug]
+  if (pathname === "/products") {
+    const legacyCat = request.nextUrl.searchParams.get("category");
+    if (legacyCat) {
+      const targetSlug = LEGACY_CATEGORY_TO_SLUG[legacyCat.trim().toLowerCase()];
+      const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+      const baseOrigin = isLocal
+        ? `http://${host}`
+        : isDashboardHost
+          ? SHOP_ORIGIN
+          : `${proto}://${host}`;
+      const destination = targetSlug
+        ? `${baseOrigin}/products/${targetSlug}`
+        : `${baseOrigin}/products`;
+      return NextResponse.redirect(destination, 308);
+    }
+  }
 
   if (isDashboardHost) {
     const currentOrigin = `${proto}://${host}`;

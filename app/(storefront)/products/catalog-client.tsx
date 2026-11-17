@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Search,
@@ -9,9 +10,15 @@ import {
   Loader2,
   CheckCircle2,
   Sparkles,
+  ChevronRight,
 } from 'lucide-react';
 import { Product } from '@/types';
-import { PRODUCT_CATEGORIES } from '@/lib/commerce';
+import {
+  getCategoryBySlug,
+  getCategoryByValue,
+  getCategoryPath,
+  PRODUCT_CATEGORIES,
+} from '@/lib/commerce';
 import { useLocale, localizeProduct, translateCategory } from '@/lib/i18n';
 import { ProductCard } from '@/components/ui/product-card';
 import { Switch } from '@/components/ui/switch';
@@ -26,15 +33,25 @@ import { cn, formatCurrency } from '@/lib/utils';
 
 const BATCH_SIZE = 12;
 
-export function CatalogClient({ initialProducts }: { initialProducts: Product[] }) {
+export function CatalogClient({
+  initialProducts,
+  activeCategorySlug,
+}: {
+  initialProducts: Product[];
+  activeCategorySlug?: string;
+}) {
   const { locale } = useLocale();
   const isDe = locale === 'de';
 
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const initialCategory = searchParams.get('category') || 'ALL';
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const activeCategoryConfig = activeCategorySlug
+    ? getCategoryBySlug(activeCategorySlug)
+    : undefined;
+
+  const selectedCategory = activeCategoryConfig ? activeCategoryConfig.value : 'ALL';
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<number>(2200);
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
@@ -44,14 +61,19 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
 
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
+  // Backwards compatibility: redirect legacy /products?category=... to /products/[category-slug]
   useEffect(() => {
-    const catParam = searchParams.get('category');
-    if (catParam) {
-      setSelectedCategory(catParam);
-    } else {
-      setSelectedCategory('ALL');
+    if (activeCategorySlug) return;
+    const legacyCategoryParam = searchParams.get('category');
+    if (legacyCategoryParam) {
+      const mapped = getCategoryByValue(legacyCategoryParam);
+      if (mapped) {
+        router.replace(`/products/${mapped.slug}`);
+      } else {
+        router.replace('/products');
+      }
     }
-  }, [searchParams]);
+  }, [activeCategorySlug, searchParams, router]);
 
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
@@ -134,34 +156,64 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
   }, [hasMore, isLoadingMore, filteredProducts.length]);
 
   const handleResetFilters = () => {
-    setSelectedCategory('ALL');
     setSearchQuery('');
     setMaxPrice(2200);
     setInStockOnly(false);
     setSortBy('featured');
-    router.replace('/products', { scroll: false });
+    if (activeCategorySlug) {
+      router.push('/products');
+    }
   };
+
+  const activeCategoryDisplayName = activeCategoryConfig
+    ? isDe
+      ? activeCategoryConfig.labelDe
+      : activeCategoryConfig.labelEn
+    : 'Collection';
+
+  const activeCategoryDescription = activeCategoryConfig
+    ? isDe
+      ? activeCategoryConfig.descriptionDe
+      : activeCategoryConfig.descriptionEn
+    : isDe
+    ? `Entdecken Sie alle ${initialProducts.length} gefertigten Modelle aus unseren fünf Atelier-Disziplinen.`
+    : `Explore all ${initialProducts.length} precision-crafted models across our five studio disciplines.`;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Page Header */}
+      {/* Page Header with Dynamic Breadcrumbs & h1 */}
       <div className="flex flex-col justify-between gap-4 border-b border-zinc-200/80 pb-8 md:flex-row md:items-end">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            <Sparkles className="h-3.5 w-3.5 text-zinc-900" />
-            <span>
-              {isDe ? 'Atelier Kollektion // 2026' : 'Atelier Collection // 2026'}
-            </span>
-          </div>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
-            {isDe
-              ? 'Präzisions-Komponenten & Systeme'
-              : 'Precision Instruments & Systems'}
+          {activeCategoryConfig ? (
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-2.5 flex items-center gap-1.5 text-xs text-zinc-500"
+            >
+              <Link
+                href="/products"
+                className="font-medium text-zinc-500 transition-colors hover:text-zinc-950"
+              >
+                Collection
+              </Link>
+              <ChevronRight className="h-3.5 w-3.5 text-zinc-300" />
+              <span className="font-semibold text-zinc-950">
+                {activeCategoryDisplayName}
+              </span>
+            </nav>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              <Sparkles className="h-3.5 w-3.5 text-zinc-900" />
+              <span>
+                {isDe ? 'Atelier Kollektion // 2026' : 'Atelier Collection // 2026'}
+              </span>
+            </div>
+          )}
+
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+            {activeCategoryDisplayName}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-500">
-            {isDe
-              ? `Entdecken Sie alle ${initialProducts.length} gefertigten Modelle aus unseren fünf Atelier-Disziplinen.`
-              : `Explore all ${initialProducts.length} precision-crafted models across our five studio disciplines.`}
+            {activeCategoryDescription}
           </p>
         </div>
 
@@ -196,11 +248,10 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
         </div>
       </div>
 
-      {/* Category Pills Bar */}
+      {/* Speaking URL Category Pills Bar */}
       <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2">
-        <button
-          type="button"
-          onClick={() => setSelectedCategory('ALL')}
+        <Link
+          href="/products"
           className={cn(
             'shrink-0 rounded-xl px-4 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950',
             selectedCategory === 'ALL'
@@ -209,17 +260,17 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
           )}
         >
           {isDe
-            ? `Alle Disziplinen (${initialProducts.length})`
-            : `All Disciplines (${initialProducts.length})`}
-        </button>
+            ? `Alle Modelle (${initialProducts.length})`
+            : `All Models (${initialProducts.length})`}
+        </Link>
         {PRODUCT_CATEGORIES.map((category) => {
           const count = initialProducts.filter((p) => p.category === category).length;
           const active = selectedCategory === category;
+          const categoryHref = getCategoryPath(category);
           return (
-            <button
+            <Link
               key={category}
-              type="button"
-              onClick={() => setSelectedCategory(category)}
+              href={categoryHref}
               className={cn(
                 'shrink-0 rounded-xl px-4 py-2 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950',
                 active
@@ -229,7 +280,7 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
             >
               {translateCategory(category, locale)}{' '}
               <span className="ml-1 font-mono opacity-65">({count})</span>
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -439,8 +490,8 @@ export function CatalogClient({ initialProducts }: { initialProducts: Product[] 
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>
                   {isDe
-                    ? `Alle ${filteredProducts.length} Modelle dieser Kollektion geladen.`
-                    : `All ${filteredProducts.length} models in this collection loaded.`}
+                    ? `Alle ${filteredProducts.length} Modelle dieser Ansicht geladen.`
+                    : `All ${filteredProducts.length} models in this view loaded.`}
                 </span>
               </div>
             )}
