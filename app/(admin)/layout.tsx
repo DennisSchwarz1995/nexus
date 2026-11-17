@@ -16,23 +16,26 @@ import {
   ArrowUpRight,
   KeyRound,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, SHOP_URL } from "@/lib/utils";
 import { toast } from "sonner";
 
 const NAV_ITEMS = [
   {
-    href: "/dashboard",
+    href: "/overview",
+    matchPaths: ["/overview", "/dashboard"],
     label: "Übersicht & KPIs",
     icon: LayoutDashboard,
     badge: "Live",
   },
   {
-    href: "/dashboard/analytics",
+    href: "/analytics",
+    matchPaths: ["/analytics", "/dashboard/analytics"],
     label: "Analytics & Heatmaps",
     icon: BarChart3,
   },
   {
-    href: "/dashboard/inventory",
+    href: "/inventory",
+    matchPaths: ["/inventory", "/dashboard/inventory"],
     label: "Inventar (TanStack v8)",
     icon: Package,
     badge: "144",
@@ -113,12 +116,12 @@ export default function AdminLayout({
           </form>
 
           <div className="mt-6 border-t border-zinc-800 pt-4 text-center">
-            <Link
-              href="/"
+            <a
+              href={SHOP_URL}
               className="text-xs text-zinc-400 hover:text-white hover:underline"
             >
               ← Zurück zur öffentlichen Storefront
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -131,7 +134,7 @@ export default function AdminLayout({
         <div className="p-5">
           <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
             <Link
-              href="/dashboard"
+              href="/overview"
               className="flex items-center gap-2.5 text-sm font-semibold tracking-[0.14em] text-zinc-950"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-950 text-[11px] font-bold tracking-normal text-white">
@@ -153,10 +156,7 @@ export default function AdminLayout({
             <nav aria-label="Admin Navigation" className="mt-2 space-y-1">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
-                const active =
-                  item.href === "/dashboard"
-                    ? pathname === "/dashboard"
-                    : pathname.startsWith(item.href);
+                const active = item.matchPaths.includes(pathname);
 
                 return (
                   <Link
@@ -205,7 +205,7 @@ export default function AdminLayout({
             <div className="mt-3 space-y-1.5 font-mono text-[10px] text-zinc-500">
               <div className="flex justify-between">
                 <span>Runtime:</span>
-                <span className="text-zinc-800">nginx:1.27-alpine</span>
+                <span className="text-zinc-800">node:22-alpine</span>
               </div>
               <div className="flex justify-between">
                 <span>Proxy:</span>
@@ -220,8 +220,8 @@ export default function AdminLayout({
         </div>
 
         <div className="border-t border-zinc-200/80 p-4 space-y-3">
-          <Link
-            href="/"
+          <a
+            href={SHOP_URL}
             className="flex w-full items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/70 px-3.5 py-2.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
           >
             <span className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export default function AdminLayout({
               <span>Zur Storefront</span>
             </span>
             <ArrowUpRight className="h-3.5 w-3.5 text-zinc-400" />
-          </Link>
+          </a>
 
           <div className="flex items-center justify-between px-1">
             <div>
@@ -260,10 +260,7 @@ export default function AdminLayout({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 lg:hidden">
               {NAV_ITEMS.map((item) => {
-                const active =
-                  item.href === "/dashboard"
-                    ? pathname === "/dashboard"
-                    : pathname.startsWith(item.href);
+                const active = item.matchPaths.includes(pathname);
                 return (
                   <Link
                     key={item.href}
@@ -314,13 +311,13 @@ export default function AdminLayout({
               <span className="hidden sm:inline">Auth Guard testen</span>
             </button>
 
-            <Link
-              href="/"
+            <a
+              href={SHOP_URL}
               className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-zinc-950 px-3.5 text-xs font-semibold text-white hover:bg-zinc-800 lg:hidden"
             >
               <Store className="h-3.5 w-3.5" />
               <span>Shop</span>
-            </Link>
+            </a>
           </div>
         </header>
 

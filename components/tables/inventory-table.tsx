@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import Link from 'next/link';
 import {
   ColumnDef,
   flexRender,
@@ -37,7 +36,7 @@ import {
 import { Product, ProductCategory, ProductStatus } from '@/types';
 import { PRODUCT_CATEGORIES, queryInventory } from '@/lib/commerce';
 import { useInventoryStore } from '@/lib/store';
-import { cn, formatCurrency, formatNumber } from '@/lib/utils';
+import { cn, formatCurrency, formatNumber, SHOP_URL } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -518,10 +517,10 @@ export function InventoryTable() {
                   <span>Wareneingang +10 Stk.</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/products/${p.slug}`}>
+                  <a href={`${SHOP_URL}/products/${p.slug}`}>
                     <ExternalLink className="h-3.5 w-3.5 text-zinc-500" />
                     <span>Im Storefront öffnen</span>
-                  </Link>
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Status setzen</DropdownMenuLabel>

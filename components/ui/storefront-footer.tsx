@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Shield, Cpu, Layers } from 'lucide-react';
+import { DASHBOARD_URL } from '@/lib/utils';
 
 export function StorefrontFooter() {
   return (
@@ -135,22 +136,28 @@ export function StorefrontFooter() {
             </h4>
             <ul className="mt-3 space-y-2 text-xs">
               <li>
-                <Link
-                  href="/dashboard"
+                <a
+                  href={`${DASHBOARD_URL}/overview`}
                   className="inline-flex items-center gap-1 font-medium text-zinc-900 hover:underline"
                 >
                   Executive KPI Dashboard <ArrowUpRight className="h-3 w-3" />
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/dashboard/analytics" className="hover:text-zinc-950">
+                <a
+                  href={`${DASHBOARD_URL}/analytics`}
+                  className="hover:text-zinc-950"
+                >
                   Traffic-Heatmaps & Recharts
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/dashboard/inventory" className="hover:text-zinc-950">
+                <a
+                  href={`${DASHBOARD_URL}/inventory`}
+                  className="hover:text-zinc-950"
+                >
                   Inventar (TanStack Table v8)
-                </Link>
+                </a>
               </li>
             </ul>
           </div>

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { ALL_PRODUCTS } from '@/lib/commerce';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, DASHBOARD_URL } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export function StorefrontHeader() {
@@ -81,12 +81,12 @@ export function StorefrontHeader() {
           <div className="hidden items-center gap-4 text-zinc-400 md:flex">
             <span>5 Jahre Manufaktur-Garantie</span>
             <span>·</span>
-            <Link
-              href="/dashboard"
+            <a
+              href={`${DASHBOARD_URL}/overview`}
               className="text-zinc-200 underline-offset-4 hover:text-white hover:underline"
             >
               Admin Telemetry →
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -158,13 +158,13 @@ export function StorefrontHeader() {
             </button>
 
             {/* Admin Dashboard Switcher */}
-            <Link
-              href="/dashboard"
+            <a
+              href={`${DASHBOARD_URL}/overview`}
               className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
             >
               <LayoutDashboard className="h-3.5 w-3.5 text-zinc-600" />
               <span className="hidden sm:inline">Admin-Dashboard</span>
-            </Link>
+            </a>
 
             {/* Cart Drawer Trigger */}
             <button

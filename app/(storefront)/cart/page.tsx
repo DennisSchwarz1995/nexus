@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { ALL_PRODUCTS } from '@/lib/commerce';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, DASHBOARD_URL } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface OrderReceipt {
@@ -265,13 +265,13 @@ export default function CartAndCheckoutPage() {
               </div>
 
               <div className="flex flex-wrap gap-3 pt-3">
-                <Link
-                  href="/dashboard"
+                <a
+                  href={`${DASHBOARD_URL}/overview`}
                   className="inline-flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-5 text-xs font-semibold text-white hover:bg-zinc-800"
                 >
                   <span>Bestellung im Admin-Dashboard prüfen</span>
                   <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                </a>
                 <button
                   type="button"
                   onClick={handleRestoreSampleCart}
