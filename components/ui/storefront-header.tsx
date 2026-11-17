@@ -15,15 +15,19 @@ import {
   Sparkles,
   Trash2,
   ShieldCheck,
-  Zap,
+  Globe,
 } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { ALL_PRODUCTS } from '@/lib/commerce';
+import { useLocale, localizeProduct } from '@/lib/i18n';
 import { cn, formatCurrency, DASHBOARD_URL } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export function StorefrontHeader() {
   const pathname = usePathname();
+  const { locale, setLocale } = useLocale();
+  const isDe = locale === 'de';
+
   const { items, isOpen, setCartOpen, updateQuantity, removeItem } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -51,42 +55,74 @@ export function StorefrontHeader() {
     ? items.reduce((acc, item) => acc + item.price * item.quantity, 0)
     : 0;
 
+  const localizedCatalog = useMemo(
+    () => ALL_PRODUCTS.map((p) => localizeProduct(p, locale)),
+    [locale]
+  );
+
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return ALL_PRODUCTS.slice(0, 5);
-    return ALL_PRODUCTS.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.subtitle.toLowerCase().includes(q)
-    ).slice(0, 6);
-  }, [searchQuery]);
+    if (!q) return localizedCatalog.slice(0, 5);
+    return localizedCatalog
+      .filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.sku.toLowerCase().includes(q) ||
+          p.subtitle.toLowerCase().includes(q)
+      )
+      .slice(0, 6);
+  }, [searchQuery, localizedCatalog]);
+
+  const navLinks = [
+    { href: '/', label: isDe ? 'Atelier' : 'Atelier' },
+    { href: '/products', label: isDe ? 'Kollektion' : 'Collection' },
+    {
+      href: '/products?category=Audio+%26+Acoustics',
+      label: isDe ? 'Audio' : 'Audio',
+    },
+    {
+      href: '/products?category=Precision+Input',
+      label: isDe ? 'Eingabe' : 'Input',
+    },
+    {
+      href: '/products?category=Modular+Desk',
+      label: isDe ? 'Raum & Tisch' : 'Desk Systems',
+    },
+    { href: '/cart', label: isDe ? 'Warenkorb' : 'Bag' },
+  ];
 
   return (
     <>
-      {/* Subtle Top Announcement Bar */}
+      {/* Natural Brand Announcement Bar */}
       <div className="border-b border-zinc-200/70 bg-zinc-950 text-zinc-200">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-[11px] tracking-wide sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
             <span>
-              <strong className="font-medium text-white">RSC Edge Architecture:</strong>{' '}
-              LCP &lt; 0.8s · Kostenfreier Expressversand ab 250 € · Code{' '}
-              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-emerald-300">
-                NEXUS10
-              </code>
+              {isDe ? (
+                <>
+                  Kostenfreier 24h-Expressversand ab 250 € · 10 % Willkommensprivileg mit Code{' '}
+                  <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-emerald-300">
+                    NEXUS10
+                  </code>
+                </>
+              ) : (
+                <>
+                  Complimentary 24h Express Shipping on orders over €250 · 10% welcome privilege with code{' '}
+                  <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-emerald-300">
+                    NEXUS10
+                  </code>
+                </>
+              )}
             </span>
           </div>
           <div className="hidden items-center gap-4 text-zinc-400 md:flex">
-            <span>5 Jahre Manufaktur-Garantie</span>
-            <span>·</span>
-            <a
-              href={`${DASHBOARD_URL}/overview`}
-              className="text-zinc-200 underline-offset-4 hover:text-white hover:underline"
-            >
-              Admin Telemetry →
-            </a>
+            <span>
+              {isDe
+                ? '5 Jahre Manufaktur-Garantie · 30 Tage Probehören'
+                : '5-Year Manufacture Warranty · 30-Day Studio Trial'}
+            </span>
           </div>
         </div>
       </div>
@@ -109,15 +145,11 @@ export function StorefrontHeader() {
               </span>
             </Link>
 
-            <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
-              {[
-                { href: '/', label: 'Storefront' },
-                { href: '/products', label: 'Katalog (144)' },
-                { href: '/products?category=Audio+%26+Acoustics', label: 'Audio' },
-                { href: '/products?category=Precision+Input', label: 'Input' },
-                { href: '/products?category=Modular+Desk', label: 'Architektur' },
-                { href: '/cart', label: 'Warenkorb' },
-              ].map((link) => {
+            <nav
+              aria-label={isDe ? 'Hauptnavigation' : 'Main Navigation'}
+              className="hidden items-center gap-1 md:flex"
+            >
+              {navLinks.map((link) => {
                 const isActive =
                   link.href === '/'
                     ? pathname === '/'
@@ -142,36 +174,76 @@ export function StorefrontHeader() {
           </div>
 
           {/* Right Utility Controls */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {/* Quick Search Button (Radix Dialog Trigger) */}
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              aria-label="Produktsuche öffnen"
-              className="flex h-9 items-center gap-2.5 rounded-xl border border-zinc-200/90 bg-zinc-50/70 px-3 text-xs text-zinc-500 transition-all hover:border-zinc-300 hover:bg-white hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
+              aria-label={isDe ? 'Produktsuche öffnen' : 'Open product search'}
+              className="flex h-9 items-center gap-2 rounded-xl border border-zinc-200/90 bg-zinc-50/70 px-3 text-xs text-zinc-500 transition-all hover:border-zinc-300 hover:bg-white hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
             >
               <Search className="h-3.5 w-3.5 text-zinc-400" />
-              <span className="hidden sm:inline">Schnellsuche...</span>
-              <kbd className="hidden rounded border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 sm:inline-block">
+              <span className="hidden sm:inline">
+                {isDe ? 'Suche...' : 'Search...'}
+              </span>
+              <kbd className="hidden rounded border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 lg:inline-block">
                 ⌘K
               </kbd>
             </button>
 
-            {/* Admin Dashboard Switcher */}
+            {/* DE | EN Language Switcher */}
+            <div
+              role="group"
+              aria-label={isDe ? 'Sprache wählen' : 'Select language'}
+              className="inline-flex h-9 items-center rounded-xl border border-zinc-200 bg-zinc-50/80 p-0.5 text-[11px] font-semibold"
+            >
+              <Globe className="ml-2 mr-1 hidden h-3 w-3 text-zinc-400 sm:inline" />
+              <button
+                type="button"
+                onClick={() => setLocale('de')}
+                className={cn(
+                  'rounded-lg px-2 py-1 transition-all',
+                  locale === 'de'
+                    ? 'bg-zinc-950 text-white shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-900'
+                )}
+              >
+                DE
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocale('en')}
+                className={cn(
+                  'rounded-lg px-2 py-1 transition-all',
+                  locale === 'en'
+                    ? 'bg-zinc-950 text-white shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-900'
+                )}
+              >
+                EN
+              </button>
+            </div>
+
+            {/* Discreet Admin Dashboard Link */}
             <a
               href={`${DASHBOARD_URL}/overview`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
+              title={isDe ? 'Zum Betreiber-Dashboard' : 'Open Operator Dashboard'}
+              className="hidden h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-xs transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 sm:inline-flex"
             >
               <LayoutDashboard className="h-3.5 w-3.5 text-zinc-600" />
-              <span className="hidden sm:inline">Admin-Dashboard</span>
+              <span className="hidden lg:inline">Dashboard</span>
             </a>
 
             {/* Cart Drawer Trigger */}
             <button
               type="button"
               onClick={() => setCartOpen(true)}
-              aria-label={`Warenkorb öffnen (${totalCount} Artikel)`}
-              className="relative inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-950 px-3.5 text-xs font-medium text-white shadow-sm transition-all hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+              aria-label={
+                isDe
+                  ? `Warenkorb öffnen (${totalCount} Artikel)`
+                  : `Open shopping bag (${totalCount} items)`
+              }
+              className="relative inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-950 px-3.5 text-xs font-medium text-white shadow-xs transition-all hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
               <span className="font-mono text-xs">{totalCount}</span>
@@ -185,11 +257,13 @@ export function StorefrontHeader() {
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-zinc-950/40 backdrop-blur-xs" />
           <DialogPrimitive.Content
-            aria-label="Schnellsuche im Produktkatalog"
+            aria-label={
+              isDe ? 'Schnellsuche im Produktkatalog' : 'Product catalog search'
+            }
             className="fixed left-1/2 top-[14%] z-50 w-[92vw] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl focus:outline-none"
           >
             <DialogPrimitive.Title className="sr-only">
-              Produktsuche
+              {isDe ? 'Produktsuche' : 'Product Search'}
             </DialogPrimitive.Title>
             <div className="flex items-center border-b border-zinc-100 px-4">
               <Search className="h-4 w-4 text-zinc-400" />
@@ -197,12 +271,16 @@ export function StorefrontHeader() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Produktname, SKU (z. B. NX-AUD-001) oder Kategorie suchen..."
+                placeholder={
+                  isDe
+                    ? 'Modell, Artikelnummer (z. B. NX-AUD-001) oder Kategorie suchen...'
+                    : 'Search by model, SKU (e.g. NX-AUD-001), or category...'
+                }
                 autoFocus
                 className="h-12 w-full bg-transparent px-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
               />
               <DialogPrimitive.Close
-                aria-label="Suche schließen"
+                aria-label={isDe ? 'Suche schließen' : 'Close search'}
                 className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
               >
                 <X className="h-4 w-4" />
@@ -210,11 +288,19 @@ export function StorefrontHeader() {
             </div>
             <div className="max-h-80 overflow-y-auto p-2">
               <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                {searchQuery.trim() ? 'Suchergebnisse' : 'Empfohlene Referenz-Produkte'}
+                {searchQuery.trim()
+                  ? isDe
+                    ? 'Suchergebnisse'
+                    : 'Search Results'
+                  : isDe
+                  ? 'Ausgewählte Referenz-Modelle'
+                  : 'Featured Reference Models'}
               </div>
               {searchResults.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-500">
-                  Keine passenden Produkte für &bdquo;{searchQuery}&ldquo; gefunden.
+                  {isDe
+                    ? `Keine passenden Produkte für „${searchQuery}“ gefunden.`
+                    : `No matching products found for "${searchQuery}".`}
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -254,39 +340,38 @@ export function StorefrontHeader() {
               )}
             </div>
             <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/70 px-4 py-2.5 text-[11px] text-zinc-500">
-              <span>Drücken Sie ESC zum Schließen</span>
+              <span>{isDe ? 'ESC zum Schließen' : 'Press ESC to close'}</span>
               <Link
                 href="/products"
                 onClick={() => setSearchOpen(false)}
                 className="font-medium text-zinc-900 hover:underline"
               >
-                Gesamten Katalog öffnen (144 Produkte) →
+                {isDe
+                  ? 'Gesamte Kollektion ansehen →'
+                  : 'View full collection →'}
               </Link>
             </div>
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
 
-      {/* Radix Dialog: Slide-Over Optimistic Cart Drawer */}
+      {/* Radix Dialog: Slide-Over Cart Drawer */}
       <DialogPrimitive.Root open={isOpen} onOpenChange={setCartOpen}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-zinc-950/40 backdrop-blur-xs transition-opacity" />
           <DialogPrimitive.Content
-            aria-label="Warenkorb-Übersicht"
+            aria-label={isDe ? 'Warenkorb' : 'Shopping Bag'}
             className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-md flex-col border-l border-zinc-200 bg-white shadow-2xl focus:outline-none"
           >
             <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-5">
               <div className="flex items-center gap-2.5">
                 <ShoppingBag className="h-4 w-4 text-zinc-900" />
                 <DialogPrimitive.Title className="text-sm font-semibold tracking-tight text-zinc-950">
-                  Warenkorb ({totalCount})
+                  {isDe ? `Warenkorb (${totalCount})` : `Shopping Bag (${totalCount})`}
                 </DialogPrimitive.Title>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200/60">
-                  <Zap className="h-2.5 w-2.5" /> Optimistic Sync
-                </span>
               </div>
               <DialogPrimitive.Close
-                aria-label="Warenkorb schließen"
+                aria-label={isDe ? 'Warenkorb schließen' : 'Close bag'}
                 className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
               >
                 <X className="h-4 w-4" />
@@ -298,12 +383,20 @@ export function StorefrontHeader() {
               {subtotal >= 250 ? (
                 <div className="flex items-center gap-2 text-xs font-medium text-emerald-700">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>Qualifiziert für kostenfreien 24h-Kurier-Expressversand.</span>
+                  <span>
+                    {isDe
+                      ? 'Qualifiziert für kostenfreien 24h-Kurier-Expressversand.'
+                      : 'Qualified for complimentary 24h Express Courier delivery.'}
+                  </span>
                 </div>
               ) : (
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs text-zinc-600">
-                    <span>Noch {formatCurrency(250 - subtotal)} bis zum Gratis-Expressversand</span>
+                    <span>
+                      {isDe
+                        ? `Noch ${formatCurrency(250 - subtotal)} bis zum Gratis-Expressversand`
+                        : `${formatCurrency(250 - subtotal)} away from complimentary Express Shipping`}
+                    </span>
                     <span className="font-mono">{Math.round((subtotal / 250) * 100)}%</span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200">
@@ -323,16 +416,21 @@ export function StorefrontHeader() {
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
                     <ShoppingBag className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-medium text-zinc-900">Ihr Warenkorb ist leer</p>
+                  <p className="text-sm font-medium text-zinc-900">
+                    {isDe ? 'Ihr Warenkorb ist leer' : 'Your shopping bag is empty'}
+                  </p>
                   <p className="mt-1 max-w-xs text-xs text-zinc-500">
-                    Entdecken Sie unsere präzisionsgefertigten Audio-, Licht- und Workstation-Systeme.
+                    {isDe
+                      ? 'Entdecken Sie unsere präzisionsgefertigten Audio-, Licht- und Workstation-Systeme.'
+                      : 'Explore our precision-machined audio, lighting, and workstation systems.'}
                   </p>
                   <Link
                     href="/products"
                     onClick={() => setCartOpen(false)}
                     className="mt-5 inline-flex items-center gap-2 rounded-xl bg-zinc-950 px-4 py-2.5 text-xs font-medium text-white hover:bg-zinc-800"
                   >
-                    Katalog erkunden <ArrowRight className="h-3.5 w-3.5" />
+                    <span>{isDe ? 'Kollektion entdecken' : 'Explore Collection'}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               ) : (
@@ -358,9 +456,15 @@ export function StorefrontHeader() {
                               type="button"
                               onClick={() => {
                                 removeItem(item.id);
-                                toast.info(`${item.name} wurde aus dem Warenkorb entfernt.`);
+                                toast.info(
+                                  isDe
+                                    ? `${item.name} wurde aus dem Warenkorb entfernt.`
+                                    : `${item.name} was removed from your bag.`
+                                );
                               }}
-                              aria-label={`${item.name} entfernen`}
+                              aria-label={
+                                isDe ? `${item.name} entfernen` : `Remove ${item.name}`
+                              }
                               className="text-zinc-400 transition-colors hover:text-red-600"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -379,7 +483,7 @@ export function StorefrontHeader() {
                           <div className="inline-flex items-center rounded-lg border border-zinc-200 bg-zinc-50/60">
                             <button
                               type="button"
-                              aria-label="Menge verringern"
+                              aria-label={isDe ? 'Menge verringern' : 'Decrease quantity'}
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                               className="px-2 py-1 text-zinc-600 hover:text-zinc-950"
                             >
@@ -390,7 +494,7 @@ export function StorefrontHeader() {
                             </span>
                             <button
                               type="button"
-                              aria-label="Menge erhöhen"
+                              aria-label={isDe ? 'Menge erhöhen' : 'Increase quantity'}
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
                               className="px-2 py-1 text-zinc-600 hover:text-zinc-950"
                             >
@@ -413,11 +517,21 @@ export function StorefrontHeader() {
               <div className="border-t border-zinc-200 bg-zinc-50/60 p-6">
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between text-zinc-500">
-                    <span>Versand (DHL Express Ident)</span>
-                    <span>{subtotal >= 250 ? 'Kostenfrei' : formatCurrency(14.9)}</span>
+                    <span>
+                      {isDe ? 'Versand (DHL Express)' : 'Shipping (DHL Express)'}
+                    </span>
+                    <span>
+                      {subtotal >= 250
+                        ? isDe
+                          ? 'Kostenfrei'
+                          : 'Complimentary'
+                        : formatCurrency(14.9)}
+                    </span>
                   </div>
                   <div className="flex justify-between pt-1 text-sm font-semibold text-zinc-950">
-                    <span>Zwischensumme (inkl. MwSt.)</span>
+                    <span>
+                      {isDe ? 'Zwischensumme (inkl. MwSt.)' : 'Subtotal (incl. VAT)'}
+                    </span>
                     <span className="font-mono">{formatCurrency(subtotal)}</span>
                   </div>
                 </div>
@@ -425,15 +539,21 @@ export function StorefrontHeader() {
                   <Link
                     href="/cart"
                     onClick={() => setCartOpen(false)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-950 px-4 py-3 text-xs font-semibold text-white shadow-sm transition-all hover:bg-zinc-800"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-950 px-4 py-3 text-xs font-semibold text-white shadow-xs transition-all hover:bg-zinc-800"
                   >
-                    <span>Zum Warenkorb & Checkout</span>
+                    <span>
+                      {isDe ? 'Zum Warenkorb & Kasse' : 'Proceed to Bag & Checkout'}
+                    </span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
                 <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-zinc-400">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>256-Bit TLS-Verschlüsselung · 30 Tage Rückgaberecht</span>
+                  <span>
+                    {isDe
+                      ? 'Sichere Zahlung · 30 Tage Rückgaberecht'
+                      : 'Encrypted Checkout · 30-Day Return Policy'}
+                  </span>
                 </div>
               </div>
             )}

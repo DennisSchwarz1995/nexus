@@ -6,9 +6,14 @@ import { Plus, Check, Star, ArrowUpRight } from 'lucide-react';
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useCartStore } from '@/lib/store';
+import { useLocale, localizeProduct, translateCategory } from '@/lib/i18n';
 import { toast } from 'sonner';
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product: rawProduct }: { product: Product }) {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+  const product = localizeProduct(rawProduct, locale);
+
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
   const [isPending, startTransition] = useTransition();
@@ -43,13 +48,20 @@ export function ProductCard({ product }: { product: Product }) {
         1
       );
 
-      toast.success(`${product.name} zum Warenkorb hinzugefügt`, {
-        description: `${defaultVariant.name} · ${formatCurrency(product.price + defaultVariant.priceDelta)}`,
-        action: {
-          label: 'Warenkorb',
-          onClick: () => setCartOpen(true),
-        },
-      });
+      toast.success(
+        isDe
+          ? `${product.name} zum Warenkorb hinzugefügt`
+          : `Added ${product.name} to your bag`,
+        {
+          description: `${defaultVariant.name} · ${formatCurrency(
+            product.price + defaultVariant.priceDelta
+          )}`,
+          action: {
+            label: isDe ? 'Warenkorb' : 'View Bag',
+            onClick: () => setCartOpen(true),
+          },
+        }
+      );
     });
   };
 
@@ -77,12 +89,12 @@ export function ProductCard({ product }: { product: Product }) {
           )}
           {product.status === 'low_stock' && (
             <span className="rounded-lg border border-amber-300/80 bg-amber-50/95 px-2 py-0.5 text-[10px] font-medium text-amber-800 backdrop-blur-md">
-              Nur noch {product.stock} Stk.
+              {isDe ? `Nur noch ${product.stock} Stk.` : `Only ${product.stock} left`}
             </span>
           )}
           {isOutOfStock && (
             <span className="rounded-lg bg-zinc-800/90 px-2.5 py-1 text-[10px] font-medium text-zinc-200">
-              Nachproduktion
+              {isDe ? 'Nachproduktion' : 'Restocking'}
             </span>
           )}
         </div>
@@ -93,18 +105,22 @@ export function ProductCard({ product }: { product: Product }) {
             type="button"
             onClick={handleQuickAdd}
             disabled={isPending}
-            aria-label={`${product.name} direkt in den Warenkorb legen`}
+            aria-label={
+              isDe
+                ? `${product.name} direkt in den Warenkorb legen`
+                : `Quick add ${product.name} to bag`
+            }
             className="absolute bottom-3 right-3 inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200/80 bg-white/95 px-3 text-xs font-semibold text-zinc-950 shadow-lg backdrop-blur-md transition-all hover:bg-zinc-950 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
           >
             {optimisticAdded ? (
               <>
                 <Check className="h-3.5 w-3.5 text-emerald-500" />
-                <span>Hinzugefügt</span>
+                <span>{isDe ? 'Im Warenkorb' : 'Added'}</span>
               </>
             ) : (
               <>
                 <Plus className="h-3.5 w-3.5" />
-                <span>Schnellkauf</span>
+                <span>{isDe ? 'Schnellkauf' : 'Quick Add'}</span>
               </>
             )}
           </button>
@@ -116,7 +132,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div>
           <div className="flex items-center justify-between gap-2 text-[11px] text-zinc-400">
             <span className="font-medium uppercase tracking-wider text-zinc-500">
-              {product.category}
+              {translateCategory(product.category, locale)}
             </span>
             <span className="inline-flex items-center gap-1 font-mono text-zinc-600">
               <Star className="h-3 w-3 fill-zinc-900 text-zinc-900" />

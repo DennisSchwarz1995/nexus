@@ -6,17 +6,21 @@ import {
   Check,
   Plus,
   Minus,
-  Zap,
   ShieldCheck,
   Truck,
   Sparkles,
 } from 'lucide-react';
 import { Product, ProductVariant } from '@/types';
 import { useCartStore } from '@/lib/store';
+import { useLocale, localizeProduct } from '@/lib/i18n';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
-export function AddToCart({ product }: { product: Product }) {
+export function AddToCart({ product: rawProduct }: { product: Product }) {
+  const { locale } = useLocale();
+  const isDe = locale === 'de';
+  const product = localizeProduct(rawProduct, locale);
+
   const { items, addItem, setCartOpen } = useCartStore();
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
     product.variants[0]
@@ -68,15 +72,20 @@ export function AddToCart({ product }: { product: Product }) {
       setJustAdded(true);
       setTimeout(() => setJustAdded(false), 1800);
 
-      toast.success(`${quantity}× ${product.name} im Warenkorb`, {
-        description: `${selectedVariant.name} (${selectedVariant.sku}) · ${formatCurrency(
-          effectivePrice * quantity
-        )}`,
-        action: {
-          label: 'Warenkorb öffnen',
-          onClick: () => setCartOpen(true),
-        },
-      });
+      toast.success(
+        isDe
+          ? `${quantity}× ${product.name} im Warenkorb`
+          : `Added ${quantity}× ${product.name} to your bag`,
+        {
+          description: `${selectedVariant.name} (${selectedVariant.sku}) · ${formatCurrency(
+            effectivePrice * quantity
+          )}`,
+          action: {
+            label: isDe ? 'Warenkorb öffnen' : 'View Bag',
+            onClick: () => setCartOpen(true),
+          },
+        }
+      );
     });
   };
 
@@ -96,7 +105,9 @@ export function AddToCart({ product }: { product: Product }) {
             )}
           </div>
           <p className="mt-1 text-[11px] text-zinc-500">
-            Inkl. 19 % gesetzl. MwSt. · Kostenfreier Expressversand
+            {isDe
+              ? 'Inkl. 19 % gesetzl. MwSt. · Kostenfreier Expressversand'
+              : 'Incl. 19% VAT · Complimentary Express Shipping'}
           </p>
         </div>
 
@@ -107,12 +118,14 @@ export function AddToCart({ product }: { product: Product }) {
           {isOutOfStock ? (
             <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-amber-700">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
-              Nachproduktion läuft
+              {isDe ? 'Nachproduktion läuft' : 'Currently Restocking'}
             </span>
           ) : (
             <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              {selectedVariant?.stock ?? product.stock} Stk. auf Lager
+              {isDe
+                ? `${selectedVariant?.stock ?? product.stock} Stk. auf Lager`
+                : `${selectedVariant?.stock ?? product.stock} units in stock`}
             </span>
           )}
         </div>
@@ -122,14 +135,16 @@ export function AddToCart({ product }: { product: Product }) {
       <div>
         <div className="flex items-center justify-between text-xs">
           <span className="font-semibold uppercase tracking-wider text-zinc-500">
-            Ausführung & Oberflächen-Finish
+            {isDe
+              ? 'Ausführung & Oberflächen-Finish'
+              : 'Edition & Surface Finish'}
           </span>
           <span className="font-medium text-zinc-900">{selectedVariant?.finish}</span>
         </div>
 
         <div
           role="radiogroup"
-          aria-label="Produktvariante wählen"
+          aria-label={isDe ? 'Produktvariante wählen' : 'Select product variant'}
           className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2"
         >
           {product.variants.map((variant) => {
@@ -144,7 +159,7 @@ export function AddToCart({ product }: { product: Product }) {
                 className={cn(
                   'flex items-center justify-between rounded-xl border p-3.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950',
                   active
-                    ? 'border-zinc-950 bg-white shadow-sm ring-1 ring-zinc-950'
+                    ? 'border-zinc-950 bg-white shadow-xs ring-1 ring-zinc-950'
                     : 'border-zinc-200 bg-white/70 hover:border-zinc-300 hover:bg-white'
                 )}
               >
@@ -169,14 +184,14 @@ export function AddToCart({ product }: { product: Product }) {
         </div>
       </div>
 
-      {/* Quantity & Optimistic Add-To-Cart Button */}
+      {/* Quantity & Add-To-Cart Button */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="inline-flex h-12 items-center justify-between rounded-xl border border-zinc-200 bg-white px-3 sm:w-36">
           <button
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             disabled={quantity <= 1 || isOutOfStock}
-            aria-label="Menge reduzieren"
+            aria-label={isDe ? 'Menge reduzieren' : 'Decrease quantity'}
             className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40"
           >
             <Minus className="h-3.5 w-3.5" />
@@ -192,7 +207,7 @@ export function AddToCart({ product }: { product: Product }) {
             disabled={
               isOutOfStock || quantity >= (selectedVariant?.stock ?? product.stock)
             }
-            aria-label="Menge erhöhen"
+            aria-label={isDe ? 'Menge erhöhen' : 'Increase quantity'}
             className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-40"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -213,38 +228,50 @@ export function AddToCart({ product }: { product: Product }) {
           )}
         >
           {isOutOfStock ? (
-            <span>Derzeit in Nachproduktion</span>
+            <span>
+              {isDe ? 'Derzeit in Nachproduktion' : 'Currently Restocking'}
+            </span>
           ) : justAdded ? (
             <>
               <Check className="h-4 w-4" />
-              <span>Im Warenkorb ({optimisticCartQty}× gesamt)</span>
+              <span>
+                {isDe
+                  ? `Im Warenkorb (${optimisticCartQty}× gesamt)`
+                  : `Added to Bag (${optimisticCartQty}× total)`}
+              </span>
             </>
           ) : (
             <>
               <ShoppingBag className="h-4 w-4" />
               <span>
-                In den Warenkorb · {formatCurrency(effectivePrice * quantity)}
+                {isDe ? 'In den Warenkorb' : 'Add to Bag'} ·{' '}
+                {formatCurrency(effectivePrice * quantity)}
               </span>
             </>
           )}
         </button>
       </div>
 
-      {/* Live Optimistic Status Indicator */}
+      {/* In-Cart Indicator */}
       {optimisticCartQty > 0 && (
         <div className="flex items-center justify-between rounded-xl border border-emerald-200/80 bg-emerald-50/70 px-3.5 py-2.5 text-xs text-emerald-900">
-          <div className="flex items-center gap-2">
-            <Zap className="h-3.5 w-3.5 text-emerald-600" />
-            <span>
-              Bereits <strong className="font-mono">{optimisticCartQty}×</strong> in Ihrem Warenkorb vorgemerkt
-            </span>
-          </div>
+          <span>
+            {isDe ? (
+              <>
+                Bereits <strong className="font-mono">{optimisticCartQty}×</strong> in Ihrem Warenkorb hinterlegt
+              </>
+            ) : (
+              <>
+                Currently <strong className="font-mono">{optimisticCartQty}×</strong> in your shopping bag
+              </>
+            )}
+          </span>
           <button
             type="button"
             onClick={() => setCartOpen(true)}
             className="font-semibold underline underline-offset-2 hover:text-emerald-950"
           >
-            Warenkorb anzeigen →
+            {isDe ? 'Warenkorb anzeigen →' : 'View Bag →'}
           </button>
         </div>
       )}
@@ -257,11 +284,11 @@ export function AddToCart({ product }: { product: Product }) {
         </div>
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 shrink-0 text-zinc-900" />
-          <span>5 Jahre Werksgarantie</span>
+          <span>{isDe ? '5 Jahre Werksgarantie' : '5-Year Warranty'}</span>
         </div>
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 shrink-0 text-zinc-900" />
-          <span>30 Tage Studio-Testphase</span>
+          <span>{isDe ? '30 Tage Studio-Testphase' : '30-Day Studio Trial'}</span>
         </div>
       </div>
     </div>
